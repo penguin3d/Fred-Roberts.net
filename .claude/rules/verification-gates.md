@@ -14,10 +14,10 @@ about tests. "Trivial code needs none" does not survive the coverage floor.
 ## Scope every run to the files you touched — that scope IS the gate
 <scoped_gate>
 
-This is a 4-core box shared by several sessions at once. A whole-solution build is 40 projects
-each running SonarAnalyzer, and a whole-workspace `ng test` is every app in the fleet. A stage
-that runs either one twenty times over an afternoon spends six hours waiting and verifies
-nothing it could not have verified in ten minutes. **Nobody waits on a run they did not have to
+This machine is shared by several sessions at once. A whole-workspace `ng test` runs every
+spec, an unscoped Stryker run mutates all of `src/` at roughly eleven seconds a mutant, and a
+stage that runs either one twenty times over an afternoon spends hours waiting and verifies
+nothing it could not have verified in minutes. **Nobody waits on a run they did not have to
 start, and nobody starts a run another session is paying for.**
 
 The gate of every stage is exactly this, and nothing wider:
