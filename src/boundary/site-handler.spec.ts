@@ -184,6 +184,16 @@ describe('the sign-in callback', () => {
 
     expect((await call(post(huge, 'g_csrf_token=abc123'))).handedOn).toBe(true);
   });
+
+  it('still signs in on a post of exactly the largest size allowed', async () => {
+    const prefix = 'g_csrf_token=abc123&credential=fred-credential&pad=';
+    const exact = prefix + 'x'.repeat(8 * 1024 - prefix.length);
+
+    expect(exact.length).toBe(8 * 1024);
+    expect((await call(post(exact, 'g_csrf_token=abc123'))).body).toBe(
+      '<portfolio>fred@example.com</portfolio>',
+    );
+  });
 });
 
 describe('signing out', () => {
@@ -212,6 +222,19 @@ describe('when something goes wrong', () => {
 
     expect(result.error).toBe(boom);
     expect(result.body).toBeNull();
+  });
+
+  it('never reads the body of a request that is not a post', async () => {
+    const failing = new Readable({
+      read() {
+        this.destroy(new Error('stream broke'));
+      },
+    });
+
+    const result = await call({ path: '/whatever', body: failing });
+
+    expect(result.error).toBeNull();
+    expect(result.handedOn).toBe(true);
   });
 
   it('shows the public site if a portfolio decision somehow arrives with no owner', async () => {

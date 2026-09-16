@@ -71,6 +71,12 @@ describe('a visitor who is not signed in', () => {
       view: 'public',
     });
   });
+
+  it('changes nothing about the device when an ordinary address is posted to', async () => {
+    const served = await serve(request({ method: 'POST', path: '/' }), CONFIG, identity);
+
+    expect(served).toEqual({ view: 'public', owner: null, session: { action: 'keep' } });
+  });
 });
 
 describe('a visitor carrying a session', () => {
@@ -88,6 +94,27 @@ describe('a visitor carrying a session', () => {
     await expect(
       serve(request({ path: ENTRANCE, session: FRED.accountId }), CONFIG, identity),
     ).resolves.toMatchObject({ view: 'portfolio' });
+  });
+
+  it('gets the public site everywhere else, portfolio or not', async () => {
+    const served = await serve(
+      request({ path: '/about', session: FRED.accountId }),
+      CONFIG,
+      identity,
+    );
+
+    expect(served).toEqual({ view: 'public', owner: null, session: { action: 'keep' } });
+  });
+
+  it('is never asked about a device that presented no session at all', async () => {
+    const asked = vi.fn(() => Promise.resolve(FRED));
+    const served = await serve(request({ path: PORTFOLIO_PATH }), CONFIG, {
+      ...identity,
+      ownerFromSession: asked,
+    });
+
+    expect(asked).not.toHaveBeenCalled();
+    expect(served).toMatchObject({ view: 'public' });
   });
 
   it('is turned away when the session is some other account', async () => {
@@ -167,6 +194,27 @@ describe('signing in', () => {
       serve(request({ path: ENTRANCE + SIGN_IN_SUFFIX }), CONFIG, identity),
     ).resolves.toMatchObject({ view: 'public' });
   });
+
+  it('is not reachable by GET even carrying a credential that would be accepted', async () => {
+    const served = await serve(
+      request({ path: ENTRANCE + SIGN_IN_SUFFIX, credential: FRED.accountId }),
+      CONFIG,
+      identity,
+    );
+
+    expect(served).toEqual({ view: 'public', owner: null, session: { action: 'keep' } });
+  });
+
+  it('never asks Google about a callback that arrived without a credential', async () => {
+    const asked = vi.fn(() => Promise.resolve(FRED));
+    const served = await serve(request(callback), CONFIG, {
+      ...identity,
+      ownerFromCredential: asked,
+    });
+
+    expect(asked).not.toHaveBeenCalled();
+    expect(served).toMatchObject({ view: 'public' });
+  });
 });
 
 describe('signing out', () => {
@@ -176,6 +224,16 @@ describe('signing out', () => {
     const served = await serve({ ...signOut, session: FRED.accountId }, CONFIG, identity);
 
     expect(served).toEqual({ view: 'public', owner: null, session: { action: 'end' } });
+  });
+
+  it('is not reachable by GET — that address ends nothing', async () => {
+    const served = await serve(
+      { ...signOut, method: 'GET', session: FRED.accountId },
+      CONFIG,
+      identity,
+    );
+
+    expect(served).toEqual({ view: 'public', owner: null, session: { action: 'keep' } });
   });
 
   it('changes nothing when there was no session to end', async () => {

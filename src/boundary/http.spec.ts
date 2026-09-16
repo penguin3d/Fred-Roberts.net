@@ -32,6 +32,18 @@ describe('readCookie', () => {
   it('matches the whole name, not a suffix of one', () => {
     expect(readCookie('not_x=1', 'x')).toBeNull();
   });
+
+  it('is null for a bare flag, rather than reading it as its own last character', () => {
+    expect(readCookie('xy', 'x')).toBeNull();
+  });
+
+  it('never matches a nameless pair, not even against the empty name', () => {
+    expect(readCookie('=abc', '')).toBeNull();
+  });
+
+  it('trims the value, so a padded cookie is the same cookie', () => {
+    expect(readCookie('a=1; x=  spaced  ', 'x')).toBe('spaced');
+  });
 });
 
 describe('the session cookie', () => {

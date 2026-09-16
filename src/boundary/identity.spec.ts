@@ -74,6 +74,12 @@ describe('a session that was not issued by us', () => {
     await expect(identity().ownerFromSession('a.b.c')).resolves.toBeNull();
   });
 
+  it('is refused when a third part is appended to one we did sign', async () => {
+    const session = (await identity().sessionFor(FRED)) ?? '';
+
+    await expect(identity().ownerFromSession(`${session}.extra`)).resolves.toBeNull();
+  });
+
   it('is refused when either part is empty', async () => {
     await expect(identity().ownerFromSession('.sig')).resolves.toBeNull();
     await expect(identity().ownerFromSession('payload.')).resolves.toBeNull();
