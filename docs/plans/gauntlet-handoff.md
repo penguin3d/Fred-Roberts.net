@@ -1,6 +1,6 @@
 # The gauntlet — stage order, definition of done, and the handoff report
 
-Diagram: [agent-gauntlet.svg](agent-gauntlet.svg). Verification policy:
+Diagram: [agent-gauntlet.svg](agent-gauntlet.svg) is upstream's picture and names the .NET tools; the stages and gates are identical, the runners here are cucumber-js, vitest, StrykerJS and Playwright. Verification policy:
 [.claude/rules/verification-gates.md](../../.claude/rules/verification-gates.md).
 
 Five stages. Each runs in its **own clean session**. There is no shared context between them —

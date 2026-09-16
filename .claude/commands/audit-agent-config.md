@@ -1,7 +1,7 @@
 # Audit the agent configuration
 
 Audit everything in `.claude/` — skills, rules, commands, hooks, settings — plus `CLAUDE.md`
-and `frontend/CLAUDE.md`, and produce a **keep / demote / merge / delete / rewrite** verdict for
+and produce a **keep / demote / merge / delete / rewrite** verdict for
 every single artifact.
 
 **This is an audit. Change nothing.** No edits, no deletions, no new files. Output a report.
@@ -42,7 +42,7 @@ conscious reversal — the audit should say what the old agents got wrong so we 
 - `.claude/rules/*.md` (19) — note which carry `paths:` frontmatter (conditional) vs not (**always-on**)
 - `.claude/commands/*.md` (6)
 - `.claude/hooks/*` (7) + how they're wired in `.claude/settings.json`
-- `CLAUDE.md`, `frontend/CLAUDE.md`, `.claude/source-tree/*.md`
+- `CLAUDE.md`, `docs/gauntlet-install.md`
 - `~/.claude/skills/` — the user-level set, to see what's already global and shouldn't be duplicated here
 
 Baseline already measured: **7 always-on rules ≈ 2,231 words**, plus **CLAUDE.md files ≈ 2,540 words**.
@@ -105,8 +105,8 @@ deterministic tool would back it. Specifically check whether the repo has anythi
   produce coverage via `--collect:"XPlat Code Coverage"` and Vitest `--coverage`. What's the
   shortest path to a per-method CRAP ranking on both stacks?
 - **Mutation testing** — StrykerJS via the command runner. Present? Wired?
-- **Architecture / dependency enforcement** — `frontend/eslint.config.js` enforces boundaries for
-  the Angular fleet; is there any equivalent for `backend/` Clean Architecture layering, and is
+- **Architecture / dependency enforcement** — `eslint.config.js` enforces boundaries for
+  the app; is anything enforcing layering between components, stores and services, and is
   there any tool that *renders* the dependency graph so drift is visible?
 - **Complexity thresholds** — ESLint `complexity: 15` is a warning today. Agents tolerate higher
   complexity than humans; propose the numbers we should actually enforce, per stack.
