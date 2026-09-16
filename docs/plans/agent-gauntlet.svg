@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="1268" viewBox="0 0 1520 1268" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8A8378"/>
+    </marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#B0413E"/>
+    </marker>
+    <style>
+      .lbl   { font-size: 9.5px; font-weight: 700; letter-spacing: 1.1px; fill: #948C80; }
+      .body  { font-size: 12.5px; fill: #3A3630; }
+      .mono  { font-family: 'Cascadia Code', 'SF Mono', Consolas, 'Courier New', monospace; font-size: 11.5px; }
+      .stage { font-size: 19px; font-weight: 700; fill: #1F1D1A; }
+      .role  { font-size: 11.5px; fill: #6B665E; }
+      .pill  { font-size: 9px; font-weight: 700; letter-spacing: 0.7px; }
+      .rule  { font-size: 12.5px; fill: #3A3630; }
+    </style>
+  </defs>
+
+  <rect width="1520" height="1268" fill="#FBFAF8"/>
+
+  <!-- ============ HEADER ============ -->
+  <text x="60" y="56" font-size="30" font-weight="700" fill="#1F1D1A">The Agent Gauntlet</text>
+  <text x="60" y="84" font-size="14" fill="#6B665E">Five agents. Each one does exactly one job, then hands off — but only when a <tspan font-weight="700" fill="#3A3630">machine</tspan>, not the agent, says it may.</text>
+  <text x="60" y="108" font-size="14" fill="#6B665E">You step in twice: define module boundaries before the Coder runs, and accept after QA. Everywhere else a tool decides.</text>
+  <line x1="60" y1="132" x2="1460" y2="132" stroke="#E3DFD8" stroke-width="1"/>
+
+  <!-- spine -->
+  <line x1="64" y1="221" x2="64" y2="978" stroke="#DDD8D0" stroke-width="2"/>
+
+  <!-- ==================== 1. SPECIFIER ==================== -->
+  <circle cx="64" cy="202" r="19" fill="#6D5BD0"/>
+  <text x="64" y="208" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">1</text>
+  <text x="96" y="196" class="stage">SPECIFIER</text>
+  <text x="96" y="216" class="role">Turns a wish into an executable contract</text>
+  <rect x="96" y="228" width="176" height="24" rx="6" fill="#EFECFB"/>
+  <text x="108" y="244" class="mono" fill="#5A49BF">/spec &lt;ADO#1234&gt;</text>
+
+  <rect x="300" y="174" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="320" y="198" class="lbl">IN</text>
+  <text x="320" y="220" class="body">ADO work item — or one</text>
+  <text x="320" y="237" class="body">sentence from you.</text>
+  <text x="320" y="264" class="body" fill="#6B665E">Domain glossary only.</text>
+  <text x="320" y="281" class="body" fill="#6B665E">Never opens the codebase.</text>
+
+  <rect x="548" y="174" width="372" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="568" y="198" class="lbl">DOES</text>
+  <text x="568" y="222" class="body">• Interrogates you until ambiguity = 0</text>
+  <text x="568" y="248" class="body">• Given / When / Then — happy path + every edge</text>
+  <text x="568" y="274" class="body">• Freezes it — no later stage may edit it</text>
+  <text x="568" y="300" class="body" fill="#948C80">Writes zero production code. Zero design.</text>
+
+  <rect x="936" y="174" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="956" y="198" class="lbl">OUT</text>
+  <text x="956" y="222" class="mono" fill="#3A3630">&lt;Feature&gt;.feature</text>
+  <text x="956" y="239" class="body" fill="#6B665E">Reqnroll, backend</text>
+  <text x="956" y="270" class="body" fill="#6B665E">The only spec there is —</text>
+  <text x="956" y="287" class="body" fill="#6B665E">stages 2–5 all read this.</text>
+
+  <rect x="1184" y="174" width="300" height="150" rx="10" fill="#FEF6F5" stroke="#EBC9C6"/>
+  <rect x="1400" y="188" width="64" height="17" rx="8" fill="#B0413E"/>
+  <text x="1432" y="200" text-anchor="middle" class="pill" fill="#FFFFFF">TO BUILD</text>
+  <text x="1204" y="198" class="lbl" fill="#B0413E">GATE</text>
+  <text x="1204" y="226" class="mono" fill="#3A3630">dotnet test --filter Acceptance</text>
+  <text x="1204" y="252" class="body">Every scenario Pending / red.</text>
+  <text x="1204" y="272" class="body">Zero green. Feature file parses.</text>
+  <text x="1204" y="298" class="body" fill="#B0413E" font-weight="600">Red — for the right reason.</text>
+
+  <path d="M 1334 324 Q 1034 356 734 324" fill="none" stroke="#B0413E" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arRed)" opacity="0.75"/>
+  <text x="1034" y="352" text-anchor="middle" font-size="10.5" fill="#B0413E" opacity="0.9">gate fails → same agent retries</text>
+
+  <line x1="64" y1="240" x2="64" y2="360" stroke="#DDD8D0" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- ==================== 2. CODER ==================== -->
+  <circle cx="64" cy="396" r="19" fill="#1E7A8C"/>
+  <text x="64" y="402" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">2</text>
+  <text x="96" y="390" class="stage">CODER</text>
+  <text x="96" y="410" class="role">Makes the contract true</text>
+  <rect x="96" y="422" width="176" height="24" rx="6" fill="#E6F2F4"/>
+  <text x="108" y="438" class="mono" fill="#166373">/code &lt;feature&gt;</text>
+
+  <rect x="300" y="368" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="320" y="392" class="lbl">IN</text>
+  <text x="320" y="414" class="body">.feature file + generated</text>
+  <text x="320" y="431" class="body">step-definition stubs.</text>
+  <text x="320" y="458" class="body" fill="#6B665E">Your architecture note:</text>
+  <text x="320" y="475" class="body" fill="#6B665E">deep modules, thin seams.</text>
+
+  <rect x="548" y="368" width="372" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="568" y="392" class="lbl">DOES</text>
+  <text x="568" y="416" class="body">• Unit tests + production code (code-then-test)</text>
+  <text x="568" y="442" class="body">• Loops until every scenario is green</text>
+  <text x="568" y="468" class="body">• NEVER edits the .feature file</text>
+  <text x="568" y="494" class="body" fill="#948C80">Not a craftsman. Speed here, quality next stage.</text>
+
+  <rect x="936" y="368" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="956" y="392" class="lbl">OUT</text>
+  <text x="956" y="414" class="body">Working implementation</text>
+  <text x="956" y="431" class="body">+ unit tests.</text>
+  <text x="956" y="462" class="body" fill="#6B665E">The .feature file, still</text>
+  <text x="956" y="479" class="body" fill="#6B665E">byte-for-byte untouched.</text>
+
+  <rect x="1184" y="368" width="300" height="150" rx="10" fill="#FBF6EC" stroke="#E8D6B4"/>
+  <rect x="1406" y="382" width="58" height="17" rx="8" fill="#B4761F"/>
+  <text x="1435" y="394" text-anchor="middle" class="pill" fill="#FFFFFF">PARTIAL</text>
+  <text x="1204" y="392" class="lbl" fill="#B4761F">GATE</text>
+  <text x="1204" y="418" class="body">All tests green · build clean</text>
+  <text x="1204" y="440" class="body">SonarAnalyzer S#### = errors</text>
+  <text x="1204" y="462" class="body">Hooks: jscpd · fallow · eslint</text>
+  <text x="1204" y="484" class="body">Coverage ≥ 90% on touched files</text>
+  <text x="1204" y="504" class="body" fill="#B4761F">Already yours — just wire it up.</text>
+
+  <path d="M 1334 518 Q 1034 550 734 518" fill="none" stroke="#B0413E" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arRed)" opacity="0.6"/>
+  <line x1="64" y1="434" x2="64" y2="554" stroke="#DDD8D0" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- ==================== 3. CLEANER ==================== -->
+  <circle cx="64" cy="590" r="19" fill="#B4761F"/>
+  <text x="64" y="596" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">3</text>
+  <text x="96" y="584" class="stage">CLEANER</text>
+  <text x="96" y="604" class="role">De-CRAPs what the Coder left behind</text>
+  <rect x="96" y="616" width="176" height="24" rx="6" fill="#FBF1DF"/>
+  <text x="108" y="632" class="mono" fill="#8F5C14">/clean</text>
+
+  <rect x="300" y="562" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="320" y="586" class="lbl">IN</text>
+  <text x="320" y="608" class="body">Green tree from Coder.</text>
+  <text x="320" y="639" class="body" fill="#6B665E">Coverage report from</text>
+  <text x="320" y="656" class="mono" fill="#6B665E">XPlat Code Coverage</text>
+  <text x="320" y="676" class="body" fill="#6B665E">and Vitest --coverage.</text>
+
+  <rect x="548" y="562" width="372" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="568" y="586" class="lbl">DOES</text>
+  <text x="568" y="610" class="body">• CRAP per method:  CC² × (1−cov)³ + CC</text>
+  <text x="568" y="636" class="body">• Anything over 30 → split it, or cover it</text>
+  <text x="568" y="662" class="body">• Naming, dead params, layer violations</text>
+  <text x="568" y="688" class="body" fill="#948C80">Behaviour must not change. Tests stay green.</text>
+
+  <rect x="936" y="562" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="956" y="586" class="lbl">OUT</text>
+  <text x="956" y="608" class="body">Same behaviour.</text>
+  <text x="956" y="625" class="body">Lower CRAP.</text>
+  <text x="956" y="656" class="body" fill="#6B665E">A ranked hotspot list of</text>
+  <text x="956" y="673" class="body" fill="#6B665E">what it could not fix.</text>
+
+  <rect x="1184" y="562" width="300" height="150" rx="10" fill="#FEF6F5" stroke="#EBC9C6"/>
+  <rect x="1400" y="576" width="64" height="17" rx="8" fill="#B0413E"/>
+  <text x="1432" y="588" text-anchor="middle" class="pill" fill="#FFFFFF">TO BUILD</text>
+  <text x="1204" y="586" class="lbl" fill="#B0413E">GATE</text>
+  <text x="1204" y="614" class="body">CRAP ≤ 30 on every touched method</text>
+  <text x="1204" y="636" class="body">Cyclomatic complexity ≤ 8</text>
+  <text x="1204" y="658" class="body">Backend layering check passes</text>
+  <text x="1204" y="684" class="body" fill="#6B665E">ReportGenerator risk hotspots</text>
+  <text x="1204" y="701" class="body" fill="#6B665E">reads your existing coverage XML.</text>
+
+  <path d="M 1334 712 Q 1034 744 734 712" fill="none" stroke="#B0413E" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arRed)" opacity="0.6"/>
+  <line x1="64" y1="628" x2="64" y2="748" stroke="#DDD8D0" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- ==================== 4. HARDENER ==================== -->
+  <circle cx="64" cy="784" r="19" fill="#B0413E"/>
+  <text x="64" y="790" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">4</text>
+  <text x="96" y="778" class="stage">HARDENER</text>
+  <text x="96" y="798" class="role">Merciless. Proves the tests actually assert</text>
+  <rect x="96" y="810" width="176" height="24" rx="6" fill="#FAEDEC"/>
+  <text x="108" y="826" class="mono" fill="#8F3330">/harden</text>
+
+  <rect x="300" y="756" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="320" y="780" class="lbl">IN</text>
+  <text x="320" y="802" class="body">Clean code and its tests.</text>
+  <text x="320" y="833" class="body" fill="#6B665E">Coverage is not evidence.</text>
+  <text x="320" y="850" class="body" fill="#6B665E">A line can run without</text>
+  <text x="320" y="867" class="body" fill="#6B665E">anything asserting on it.</text>
+
+  <rect x="548" y="756" width="372" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="568" y="780" class="lbl">DOES</text>
+  <text x="568" y="804" class="body">• Stryker.NET / StrykerJS mutation run</text>
+  <text x="568" y="830" class="body">• Kills every surviving mutant</text>
+  <text x="568" y="856" class="body">• Deletes assertion-free tests outright</text>
+  <text x="568" y="882" class="body" fill="#948C80">Strengthens tests. Never touches production code.</text>
+
+  <rect x="936" y="756" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="956" y="780" class="lbl">OUT</text>
+  <text x="956" y="802" class="body">Tests that actually bite.</text>
+  <text x="956" y="833" class="body" fill="#6B665E">Production code byte-for-</text>
+  <text x="956" y="850" class="body" fill="#6B665E">byte identical to stage 3.</text>
+
+  <rect x="1184" y="756" width="300" height="150" rx="10" fill="#FEF6F5" stroke="#EBC9C6"/>
+  <rect x="1400" y="770" width="64" height="17" rx="8" fill="#B0413E"/>
+  <text x="1432" y="782" text-anchor="middle" class="pill" fill="#FFFFFF">TO BUILD</text>
+  <text x="1204" y="780" class="lbl" fill="#B0413E">GATE</text>
+  <text x="1204" y="808" class="body">Mutation score ≥ 80% on touched files</text>
+  <text x="1204" y="830" class="body">Zero survivors in new code</text>
+  <text x="1204" y="856" class="body" fill="#6B665E">The survivor list IS the</text>
+  <text x="1204" y="873" class="body" fill="#6B665E">remaining test list. No arguing</text>
+  <text x="1204" y="890" class="body" fill="#6B665E">with it.</text>
+
+  <path d="M 1334 906 Q 1034 938 734 906" fill="none" stroke="#B0413E" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arRed)" opacity="0.6"/>
+  <line x1="64" y1="822" x2="64" y2="942" stroke="#DDD8D0" stroke-width="2" marker-end="url(#ar)"/>
+
+  <!-- ==================== 5. QA ==================== -->
+  <circle cx="64" cy="978" r="19" fill="#2E7D4F"/>
+  <text x="64" y="984" text-anchor="middle" font-size="16" font-weight="700" fill="#FFFFFF">5</text>
+  <text x="96" y="972" class="stage">QA</text>
+  <text x="96" y="992" class="role">Proves it works through the real UI</text>
+  <rect x="96" y="1004" width="176" height="24" rx="6" fill="#E7F3EC"/>
+  <text x="108" y="1020" class="mono" fill="#22603D">/qa &lt;feature&gt;</text>
+
+  <rect x="300" y="950" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="320" y="974" class="lbl">IN</text>
+  <text x="320" y="996" class="mono" fill="#3A3630">&lt;Feature&gt;.feature</text>
+  <text x="320" y="1013" class="body" fill="#6B665E">frozen back at stage 1</text>
+  <text x="320" y="1044" class="body">Running system:</text>
+  <text x="320" y="1061" class="mono" fill="#3A3630">aspire run</text>
+
+  <rect x="548" y="950" width="372" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="568" y="974" class="lbl">DOES</text>
+  <text x="568" y="998" class="body">• Turns the QA doc into a Playwright script</text>
+  <text x="568" y="1024" class="body">• Drives the real UI — not the API</text>
+  <text x="568" y="1050" class="body">• One screenshot per acceptance criterion</text>
+  <text x="568" y="1076" class="body" fill="#948C80">Finds nothing? Then stage 1 under-specified.</text>
+
+  <rect x="936" y="950" width="232" height="150" rx="10" fill="#FFFFFF" stroke="#E3DFD8"/>
+  <text x="956" y="974" class="lbl">OUT</text>
+  <text x="956" y="996" class="body">Passing E2E spec</text>
+  <text x="956" y="1013" class="body">+ screenshot evidence.</text>
+  <text x="956" y="1044" class="body" fill="#6B665E">Then it is yours to</text>
+  <text x="956" y="1061" class="body" fill="#6B665E">accept — or send back.</text>
+
+  <rect x="1184" y="950" width="300" height="150" rx="10" fill="#FBF6EC" stroke="#E8D6B4"/>
+  <rect x="1406" y="964" width="58" height="17" rx="8" fill="#B4761F"/>
+  <text x="1435" y="976" text-anchor="middle" class="pill" fill="#FFFFFF">PARTIAL</text>
+  <text x="1204" y="974" class="lbl" fill="#B4761F">GATE</text>
+  <text x="1204" y="1000" class="body">Playwright green: local + systest</text>
+  <text x="1204" y="1022" class="body">Every criterion → one assertion</text>
+  <text x="1204" y="1048" class="body" fill="#6B665E">You already have playwright</text>
+  <text x="1204" y="1065" class="body" fill="#6B665E">MCP + qa-automation.</text>
+  <text x="1204" y="1088" class="body" fill="#2E7D4F" font-weight="600">Then: you accept → /release</text>
+
+  <!-- ============ RULES OF THE ROAD ============ -->
+  <line x1="60" y1="1132" x2="1460" y2="1132" stroke="#E3DFD8" stroke-width="1"/>
+  <text x="60" y="1160" class="lbl" fill="#1F1D1A">RULES OF THE ROAD</text>
+
+  <text x="60" y="1186" class="rule"><tspan font-weight="700">1 ·</tspan> One agent, one stage, one context window. Never let one do two.</text>
+  <text x="60" y="1210" class="rule"><tspan font-weight="700">2 ·</tspan> A gate fails → <tspan font-weight="700">that same agent</tspan> retries. Never skip forward.</text>
+  <text x="60" y="1234" class="rule"><tspan font-weight="700">3 ·</tspan> The .feature is frozen after stage 1. Changing it means going back to stage 1.</text>
+
+  <text x="790" y="1186" class="rule"><tspan font-weight="700">4 ·</tspan> Specs are ephemeral. The tests are the spec — keep no parallel design doc.</text>
+  <text x="790" y="1210" class="rule"><tspan font-weight="700">5 ·</tspan> If you catch yourself reminding an agent of a rule, build a gate instead.</text>
+
+  <rect x="790" y="1226" width="10" height="10" rx="2" fill="#B4761F"/>
+  <text x="808" y="1235" font-size="11.5" fill="#6B665E">partly in the repo today</text>
+  <rect x="964" y="1226" width="10" height="10" rx="2" fill="#B0413E"/>
+  <text x="982" y="1235" font-size="11.5" fill="#6B665E">must be built</text>
+  <line x1="1080" y1="1231" x2="1104" y2="1231" stroke="#B0413E" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <text x="1112" y="1235" font-size="11.5" fill="#6B665E">retry loop, same agent</text>
+</svg>
