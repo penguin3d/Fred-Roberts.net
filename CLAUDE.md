@@ -66,5 +66,29 @@ then record it with `gauntlet synced <slug> <stage>`.
 - E2E specs in `e2e/`. Playwright starts `ng serve` itself.
 - Build artefacts are never committed. `test-results/`, `reports/`, `StrykerOutput/` and
   `.stryker-tmp/` are gitignored.
-- npm needs `--legacy-peer-deps` on this machine: npm 11.5.2 crashes in peer resolution
-  (`Cannot read properties of null (reading 'edgesOut')`) on this dependency graph.
+## npm: never use `--legacy-peer-deps` here
+
+It broke the App Hosting deploy twice. Firebase runs `npm ci`, which validates
+`package-lock.json` against `package.json` with full peer resolution; `--legacy-peer-deps`
+skips exactly that resolution, so it produces a lockfile `npm ci` rejects outright.
+
+npm 11.5.2 on this machine does crash during peer resolution
+(`Cannot read properties of null (reading 'edgesOut')`), which is why it got used. The way
+round it without desyncing the lockfile:
+
+    npm install --package-lock-only <pkg>   # resolve strictly, no crash
+    npm ci                                  # then install from the lockfile
+
+Two things the lockfile needs that are easy to lose:
+
+- `@babel/core` exists twice on purpose: 8.x at the root for Stryker, 7.29.7 nested under the
+  Angular packages. Flattening that is what `--legacy-peer-deps` did.
+- `@emnapi/core`, `@emnapi/runtime` and `@emnapi/wasi-threads` are declared as devDependencies
+  even though nothing imports them. They are peers of `@napi-rs/wasm-runtime`, an optional
+  dependency of `piscina` in Angular's build. On macOS the native binary wins so npm never
+  records them, and the Linux build then fails on a lockfile that is missing them. Do not
+  "clean up" these three.
+
+**Before pushing anything that touched dependencies**, prove it the way the build does:
+
+    rm -rf node_modules && npm ci && npx ng build
