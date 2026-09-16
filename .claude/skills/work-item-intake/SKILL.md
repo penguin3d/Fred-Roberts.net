@@ -258,13 +258,20 @@ and it goes **around** the item, never into its framing:
 
 ## Filing in ADO
 
-- Project **`Fred Personal Work`** (`f688cefd-6d0b-4bda-bcf4-2f0fc43b9e84`) unless the requester names
+- Project **`Fred Personal Work`** (`5b95fd54-f4d5-4dfc-9036-dc950c47bbe8`) unless the requester names
   another. Never file product intake into the old `Gym Bug` project.
-- `mcp__ado__wit_work_item_write`, action `create`. `System.AreaPath: "Fred Personal Work"`,
-  `System.IterationPath: "Fred Personal Work"`, multiline fields with `format: "Html"` and entities
-  escaped (`&amp; &lt; &gt; &quot;`).
+- `mcp__ado__wit_work_item_write`, action `add_child` with `parentId` set to the Feature (or the
+  Epic, for a Feature). That creates the item and the parent link in one write. Multiline fields
+  with `format: "Html"` and entities escaped (`&amp; &lt; &gt; &quot;`).
+- **`areaPath` is the parent's area path, never the bare project root.** The root is the one
+  place nothing filters on: an item left there shows on no domain view and cannot reach the
+  pipeline board. Read the parent's `System.AreaPath` and copy it (`Fred Personal Work\Personal`,
+  `\GSC`, `\Tooling`, `\Hardware`). Five stories were filed at the root on 2026-09-13 and had to
+  be re-homed by hand.
+- `iterationPath`: the current dated sprint for a story that is next; the project root otherwise.
 - New items start in **New** — do not set state on create.
-- Parent it with `mcp__ado__wit_work_item_link_write` (`type: "parent"`): a User Story under its
+- `add_child` already parented it. If you had to use `create` instead, link it with
+  `mcp__ado__wit_work_item_link_write` (`type: "parent"`) before reporting: a User Story under its
   Feature, a Feature under its Epic. An unparented item is an orphan nobody grooms.
 - Report the id and `https://dev.azure.com/PeskySix/Fred Personal Work/_workitems/edit/<id>`.
 - If a write is rejected or the MCP is unavailable, output the finished item text so it can be
