@@ -102,10 +102,10 @@ async function visit(
   // Exact match only. A different case, a trailing slash or an extra segment is a
   // different address, and every other address on this site is the public site.
   if (request.path === entrancePath) {
-    return owner ? shown(owner) : { view: 'entrance', owner: null, session: { action: 'keep' } };
+    return owner ? portfolioFor(owner) : { view: 'entrance', owner: null, session: { action: 'keep' } };
   }
   if (request.path === PORTFOLIO_PATH && owner) {
-    return shown(owner);
+    return portfolioFor(owner);
   }
 
   return PUBLIC;
@@ -129,6 +129,6 @@ async function signedInOwner(
   return owner && owner.accountId === allowedAccountId ? owner : null;
 }
 
-function shown(owner: Owner): Served {
+function portfolioFor(owner: Owner): Served {
   return { view: 'portfolio', owner, session: { action: 'keep' } };
 }

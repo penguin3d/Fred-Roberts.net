@@ -142,16 +142,43 @@ function frontendCoverage() {
   for (const f of files) {
     for (const [path, data] of Object.entries(JSON.parse(readFileSync(f, 'utf8')))) {
       const key = path.split('\\').join('/').replace(ROOT.split('\\').join('/') + '/', '');
-      const d = byFile.get(key) ?? { statements: {}, hits: {} };
+      const d = byFile.get(key) ?? { statements: {}, hits: {}, spans: new Map() };
       for (const [id, loc] of Object.entries(data.statementMap ?? {})) {
         const gid = `${key}:${id}`;
         d.statements[gid] = loc.start?.line;
         d.hits[gid] = Math.max(d.hits[gid] ?? 0, data.s?.[id] ?? 0);
       }
+      // True function spans, keyed on the DECLARATION line. ESLint's complexity rule
+      // reports a point location, not a range, so its endLine equals its line and the
+      // function body is outside it — see resolveSpan.
+      for (const fn of Object.values(data.fnMap ?? {})) {
+        const decl = fn.decl?.start?.line;
+        const start = fn.loc?.start?.line;
+        const end = fn.loc?.end?.line;
+        if (!Number.isFinite(start) || !Number.isFinite(end)) continue;
+        for (const at of new Set([decl, start])) {
+          if (Number.isFinite(at)) d.spans.set(at, { start, end });
+        }
+      }
       byFile.set(key, d);
     }
   }
   return byFile;
+}
+
+/**
+ * ESLint's `complexity` rule reports a POINT, so the message's endLine equals its line
+ * and a naive [line, endLine] span holds no statements for any function whose body starts
+ * on the next line — which silently dropped 28 of 35 functions here and still printed a
+ * confident "worst CRAP" for the 7 one-liners that happened to survive. Istanbul's fnMap
+ * carries the real range and its `decl` line is exactly what ESLint points at, so the two
+ * join on that line. No fnMap entry (an arrow ESLint sees and coverage inlined) falls back
+ * to the point, which scores it only if a statement starts on that line — the old behaviour,
+ * now the exception rather than the rule.
+ */
+function resolveSpan(byFile, file, line, endLine) {
+  const span = byFile.get(file)?.spans?.get(line);
+  return span ? [span.start, span.end] : [line, endLine];
 }
 
 // ------------------------------------------------------------------- measure
@@ -163,10 +190,21 @@ function measure(quiet) {
   }
   const lookup = makeCoverageLookup(byFile);
   const rows = [];
+  const dropped = [];
   for (const f of frontendComplexity(quiet)) {
-    const cov = lookup(f.file, f.start, f.end);
-    if (cov === null) continue;
+    const [start, end] = resolveSpan(byFile, f.file, f.start, f.end);
+    const cov = lookup(f.file, start, end);
+    if (cov === null) {
+      // A function ESLint weighed that coverage could not place. Never silent: an
+      // unscored function is indistinguishable from a clean one in the totals.
+      if (byFile.has(f.file)) dropped.push(f);
+      continue;
+    }
     rows.push({ stack: 'frontend', file: f.file, name: f.name, line: f.start, cc: f.cc, cov: cov * 100, crap: crapOf(f.cc, cov) });
+  }
+  if (dropped.length && !quiet) {
+    console.error(`\ncrap: ${dropped.length} function(s) in covered files could not be placed and were NOT scored:`);
+    for (const f of dropped) console.error(`  CC ${String(f.cc).padStart(3)}  ${f.name}  (${f.file}:${f.start})`);
   }
   return rows;
 }

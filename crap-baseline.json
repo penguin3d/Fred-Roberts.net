@@ -1,0 +1,84 @@
+{
+  "stacks": {
+    "frontend": {
+      "recorded": "2026-09-16",
+      "maxCrap": 7,
+      "scored": 35,
+      "over30": 0,
+      "worstOffenders": [
+        {
+          "crap": 7,
+          "cc": 7,
+          "cov": 100,
+          "fn": "serve",
+          "at": "src/boundary/boundary.ts:55"
+        },
+        {
+          "crap": 6,
+          "cc": 6,
+          "cov": 100,
+          "fn": "readCookie",
+          "at": "src/boundary/http.ts:19"
+        },
+        {
+          "crap": 5,
+          "cc": 5,
+          "cov": 100,
+          "fn": "signIn",
+          "at": "src/boundary/boundary.ts:75"
+        },
+        {
+          "crap": 5,
+          "cc": 5,
+          "cov": 100,
+          "fn": "visit",
+          "at": "src/boundary/boundary.ts:94"
+        },
+        {
+          "crap": 5,
+          "cc": 5,
+          "cov": 100,
+          "fn": "readSession",
+          "at": "src/boundary/identity.ts:79"
+        },
+        {
+          "crap": 5,
+          "cc": 5,
+          "cov": 100,
+          "fn": "async arrow function @35",
+          "at": "src/boundary/site-handler.ts:35"
+        },
+        {
+          "crap": 4,
+          "cc": 4,
+          "cov": 100,
+          "fn": "signedInOwner",
+          "at": "src/boundary/boundary.ts:118"
+        },
+        {
+          "crap": 4,
+          "cc": 4,
+          "cov": 100,
+          "fn": "ownerFromClaims",
+          "at": "src/boundary/identity.ts:88"
+        },
+        {
+          "crap": 3,
+          "cc": 3,
+          "cov": 100,
+          "fn": "pathOf",
+          "at": "src/boundary/http.ts:42"
+        },
+        {
+          "crap": 3,
+          "cc": 3,
+          "cov": 100,
+          "fn": "createIdentityCheck",
+          "at": "src/boundary/identity.ts:47"
+        }
+      ]
+    }
+  },
+  "note": "CRAP ratchet, source complexity both stacks. maxCrap only ever goes DOWN. Never re-record to turn a red gate green.",
+  "threshold": 30
+}

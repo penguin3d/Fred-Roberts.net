@@ -78,7 +78,7 @@ function issueSession(secret: string, owner: Owner, issuedAt: number): string {
  */
 function readSession(secret: string, value: string): Owner | null {
   const parts = value.split('.');
-  if (parts.length !== 2 || !parts[0] || !parts[1] || !sameString(sign(secret, parts[0]), parts[1])) {
+  if (parts.length !== 2 || !parts[0] || !parts[1] || !constantTimeEquals(sign(secret, parts[0]), parts[1])) {
     return null;
   }
 
@@ -104,7 +104,7 @@ function sign(secret: string, payload: string): string {
   return createHmac('sha256', secret).update(payload).digest('base64url');
 }
 
-function sameString(left: string, right: string): boolean {
+function constantTimeEquals(left: string, right: string): boolean {
   const a = Buffer.from(left, 'utf8');
   const b = Buffer.from(right, 'utf8');
 

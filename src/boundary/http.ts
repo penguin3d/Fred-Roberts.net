@@ -32,11 +32,11 @@ export function readCookie(header: string | undefined, name: string): string | n
 }
 
 export function startSessionCookie(value: string): string {
-  return attributes(`${SESSION_COOKIE}=${encodeURIComponent(value)}`, SESSION_MAX_AGE_SECONDS);
+  return cookieHeader(`${SESSION_COOKIE}=${encodeURIComponent(value)}`, SESSION_MAX_AGE_SECONDS);
 }
 
 export function endSessionCookie(): string {
-  return attributes(`${SESSION_COOKIE}=`, 0);
+  return cookieHeader(`${SESSION_COOKIE}=`, 0);
 }
 
 export function pathOf(url: string | undefined): string {
@@ -47,6 +47,6 @@ export function pathOf(url: string | undefined): string {
   }
 }
 
-function attributes(pair: string, maxAge: number): string {
+function cookieHeader(pair: string, maxAge: number): string {
   return `${pair}; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`;
 }
