@@ -5,7 +5,7 @@ paths:
 
 # Responsive UI — every human-facing surface works on a phone
 
-Decided 2026-08-23. Applies to `frontend/` (the new fleet). The legacy
+Decided 2026-08-23. Applies to every page in `src/`.
 
 ## Which apps
 
