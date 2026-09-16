@@ -10,7 +10,15 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
 import { serve, type BoundaryConfig, type SessionChange, type SiteRequest } from './boundary';
-import { CSRF_COOKIE, SESSION_COOKIE, endSessionCookie, pathOf, readCookie, startSessionCookie } from './http';
+import {
+  CSRF_COOKIE,
+  SESSION_COOKIE,
+  endSessionCookie,
+  originOf,
+  pathOf,
+  readCookie,
+  startSessionCookie,
+} from './http';
 import type { IdentityCheck, Owner } from './identity';
 
 /** Google's credential post is a few hundred bytes; anything larger is not one. */
@@ -21,7 +29,8 @@ export type Next = (error?: unknown) => void;
 export interface SiteHandlerDeps {
   readonly config: BoundaryConfig;
   readonly identity: IdentityCheck;
-  readonly renderEntrance: () => string;
+  /** Takes the absolute origin of the request: Google rejects a relative login_uri. */
+  readonly renderEntrance: (origin: string) => string;
   readonly renderPortfolio: (owner: Owner) => string;
 }
 
@@ -38,7 +47,7 @@ export function createSiteHandler(deps: SiteHandlerDeps): SiteHandler {
       applySession(res, served.session);
 
       if (served.view === 'entrance') {
-        sendHtml(res, deps.renderEntrance());
+        sendHtml(res, deps.renderEntrance(originOf(req.headers)));
       } else if (served.view === 'portfolio' && served.owner) {
         sendHtml(res, deps.renderPortfolio(served.owner));
       } else {

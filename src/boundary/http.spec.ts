@@ -1,4 +1,11 @@
-import { SESSION_COOKIE, endSessionCookie, pathOf, readCookie, startSessionCookie } from './http';
+import {
+  SESSION_COOKIE,
+  endSessionCookie,
+  originOf,
+  pathOf,
+  readCookie,
+  startSessionCookie,
+} from './http';
 
 describe('readCookie', () => {
   it('finds a cookie among several', () => {
@@ -80,5 +87,61 @@ describe('pathOf', () => {
 
   it('falls back to the root when the url cannot be parsed', () => {
     expect(pathOf('http://')).toBe('/');
+  });
+});
+
+describe('originOf', () => {
+  it('builds an https origin from the host header', () => {
+    expect(originOf({ host: 'fredroberts.net' })).toBe('https://fredroberts.net');
+  });
+
+  it('prefers the forwarded host over the internal one', () => {
+    expect(
+      originOf({ host: 'fred-roberts-bak.run.app', 'x-forwarded-host': 'fredroberts.net' }),
+    ).toBe('https://fredroberts.net');
+  });
+
+  it('takes the first entry when proxies have appended to the list', () => {
+    expect(originOf({ 'x-forwarded-host': 'fredroberts.net, inner.run.app' })).toBe(
+      'https://fredroberts.net',
+    );
+  });
+
+  it('takes the first entry when the header arrives repeated', () => {
+    expect(originOf({ 'x-forwarded-host': ['fredroberts.net', 'inner.run.app'] })).toBe(
+      'https://fredroberts.net',
+    );
+  });
+
+  it('honours a forwarded http scheme', () => {
+    expect(originOf({ host: 'localhost:4200', 'x-forwarded-proto': 'http' })).toBe(
+      'http://localhost:4200',
+    );
+  });
+
+  it('assumes https when no scheme is forwarded', () => {
+    expect(originOf({ host: 'fredroberts.net' })).toBe('https://fredroberts.net');
+  });
+
+  it('ignores an empty forwarded host and falls back to host', () => {
+    expect(originOf({ host: 'fredroberts.net', 'x-forwarded-host': '' })).toBe(
+      'https://fredroberts.net',
+    );
+  });
+
+  it('yields a bare scheme when there is no host at all, rather than throwing', () => {
+    expect(originOf({})).toBe('https://');
+  });
+
+  it('treats a whitespace-only forwarded host as absent', () => {
+    expect(originOf({ host: 'fredroberts.net', 'x-forwarded-host': '   ' })).toBe(
+      'https://fredroberts.net',
+    );
+  });
+
+  it('treats a leading empty entry in the list as absent', () => {
+    expect(originOf({ host: 'fredroberts.net', 'x-forwarded-host': ', inner.run.app' })).toBe(
+      'https://fredroberts.net',
+    );
   });
 });

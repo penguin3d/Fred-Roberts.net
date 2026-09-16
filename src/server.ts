@@ -56,8 +56,8 @@ app.use(
   createSiteHandler({
     config,
     identity,
-    renderEntrance: () =>
-      renderEntrance(googleClientId ?? '', (entrancePath ?? '') + SIGN_IN_SUFFIX),
+    renderEntrance: (origin) =>
+      renderEntrance(googleClientId ?? '', origin + (entrancePath ?? '') + SIGN_IN_SUFFIX),
     renderPortfolio: (owner) => renderPortfolio(owner, (entrancePath ?? '') + SIGN_OUT_SUFFIX),
   }),
 );

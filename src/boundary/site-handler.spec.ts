@@ -33,6 +33,7 @@ async function call(options: {
   cookie?: string;
   body?: string | Readable;
   behindExpress?: boolean;
+  headers?: Record<string, string | string[]>;
   deps?: Partial<Parameters<typeof createSiteHandler>[0]>;
 }): Promise<Call> {
   const source =
@@ -43,7 +44,7 @@ async function call(options: {
   const req = Object.assign(source, {
     method: 'method' in options ? options.method : 'GET',
     url: options.path ?? '/',
-    headers: { cookie: options.cookie },
+    headers: { host: 'fredroberts.net', cookie: options.cookie, ...options.headers },
     ...(options.behindExpress ? { originalUrl: options.path ?? '/' } : {}),
   }) as unknown as IncomingMessage;
 
@@ -65,7 +66,7 @@ async function call(options: {
   const handler = createSiteHandler({
     config: CONFIG,
     identity,
-    renderEntrance: () => '<entrance/>',
+    renderEntrance: (origin: string) => `<entrance origin="${origin}"/>`,
     renderPortfolio: (owner) => `<portfolio>${owner.label}</portfolio>`,
     ...options.deps,
   });
@@ -114,7 +115,7 @@ describe('a request the boundary sends to the public site', () => {
   it('is what a request with no method at all gets, read as a plain GET', async () => {
     const result = await call({ method: undefined, path: ENTRANCE });
 
-    expect(result.body).toBe('<entrance/>');
+    expect(result.body).toBe('<entrance origin="https://fredroberts.net"/>');
   });
 });
 
@@ -122,12 +123,38 @@ describe('the entrance', () => {
   it('is rendered, uncacheable and hidden from robots', async () => {
     const result = await call({ path: ENTRANCE });
 
-    expect(result.body).toBe('<entrance/>');
+    expect(result.body).toBe('<entrance origin="https://fredroberts.net"/>');
     expect(result.statusCode).toBe(200);
     expect(result.handedOn).toBe(false);
     expect(result.headers.get('content-type')).toBe('text/html; charset=utf-8');
     expect(result.headers.get('cache-control')).toBe('no-store');
     expect(result.headers.get('x-robots-tag')).toBe('noindex, nofollow');
+  });
+});
+
+describe('the origin the entrance is rendered for', () => {
+  it('is the host the request arrived on, so login_uri is absolute', async () => {
+    const result = await call({ path: ENTRANCE });
+
+    expect(result.body).toBe('<entrance origin="https://fredroberts.net"/>');
+  });
+
+  it('prefers the forwarded host, because App Hosting terminates TLS at its proxy', async () => {
+    const result = await call({
+      path: ENTRANCE,
+      headers: { host: 'fred-roberts-bak.run.app', 'x-forwarded-host': 'fredroberts.net' },
+    });
+
+    expect(result.body).toBe('<entrance origin="https://fredroberts.net"/>');
+  });
+
+  it('honours a forwarded http scheme, so a local run is not told https', async () => {
+    const result = await call({
+      path: ENTRANCE,
+      headers: { host: 'localhost:4200', 'x-forwarded-proto': 'http' },
+    });
+
+    expect(result.body).toBe('<entrance origin="http://localhost:4200"/>');
   });
 });
 
