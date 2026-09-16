@@ -26,16 +26,16 @@ runConfig:
 #      firebase apphosting:secrets:set session-secret             # 32+ random bytes
 #   3. Uncomment the block below and deploy.
 #
-# env:
-#   - variable: SIGN_IN_ENTRANCE_PATH
-#     secret: sign-in-entrance-path
-#     availability: [RUNTIME]
-#   - variable: ALLOWED_GOOGLE_ACCOUNT_ID
-#     secret: allowed-google-account-id
-#     availability: [RUNTIME]
-#   - variable: GOOGLE_OAUTH_CLIENT_ID
-#     secret: google-oauth-client-id
-#     availability: [RUNTIME]
-#   - variable: SESSION_SECRET
-#     secret: session-secret
-#     availability: [RUNTIME]
+env:
+  - variable: SIGN_IN_ENTRANCE_PATH
+    secret: sign-in-entrance-path
+    availability: [RUNTIME]
+  - variable: ALLOWED_GOOGLE_ACCOUNT_ID
+    secret: allowed-google-account-id
+    availability: [RUNTIME]
+  - variable: GOOGLE_OAUTH_CLIENT_ID
+    secret: google-oauth-client-id
+    availability: [RUNTIME]
+  - variable: SESSION_SECRET
+    secret: session-secret
+    availability: [RUNTIME]
