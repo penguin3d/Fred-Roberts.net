@@ -9,15 +9,12 @@
  *
  * Two problems, one graph.
  *
- * 1. BUILD SCOPE. /code and /clean prescribed `dotnet build backend/GymBug.sln` —
- *    40 projects, every one running SonarAnalyzer (Directory.Build.props), on a
- *    4-core box. This walks the ProjectReference graph, takes the REVERSE closure of
- *    the projects the changed files live in, and writes a .slnf solution filter — the
- *    native .NET mechanism for exactly this.
- *
- *    Reverse, not forward: `dotnet build X` already pulls in what X depends ON. What a
- *    whole-solution build really buys is the things that depend on X — the callers that
- *    stop compiling when a signature changes. That set is usually small.
+ * 1. NO BUILD SCOPE. The .NET original walked the ProjectReference graph and wrote
+ *    a .slnf filter so a 4-core box did not rebuild 40 projects. This workspace is
+ *    one Angular application: `ng build` builds it, and there is nothing to scope.
+ *    The `affected` command and the .sln/.csproj graph behind it were removed rather
+ *    than left half wired. If this repo ever becomes a multi-project workspace,
+ *    scope with `ng build <project>`, not with this tool.
  *
  * 2. STAGE STATE. The ledger lives OUTSIDE the repo on purpose: state committed on a
  *    feature branch is invisible from every other branch, which defeats the one question
@@ -50,8 +47,8 @@ import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const SLN = join(ROOT, 'backend', 'GymBug.sln');
-const FEATURES = join(ROOT, 'backend', 'GymBug.Acceptance.Tests', 'Features');
+const FEATURES = join(ROOT, 'features');
+const RESULTS = join(ROOT, 'test-results');
 // Worktrees share ONE ledger: the state dir is named after the main checkout, never the
 // worktree folder, or a slug worked in ../gsc-wt/<slug> would read an empty ledger.
 function repoName() {
@@ -97,12 +94,16 @@ const BOARD = {
  * only its State set lands in the leftmost column that matches. Always write both.
  */
 const COLUMN_FIELD = {
-  'User Story': 'WEF_79FE1C605ACB4C4F846C090E137BC796_Kanban.Column',
-  Bug: 'WEF_79FE1C605ACB4C4F846C090E137BC796_Kanban.Column',
-  Feature: 'WEF_1B4F0CF57E764A8F947F2E47DC79F6FF_Kanban.Column',
+  // Read from GET .../{team}/_apis/work/boards/{board} -> fields.columnField.
+  // These are Fred Personal Work's, NOT GymBugHub's - the GUIDs differ per project.
+  // Bug is absent deliberately: this team runs bugsBehavior=asTasks, so bugs are
+  // not on the Stories board and have no Kanban column field to write.
+  'User Story': 'WEF_E38AF6C093F34082A7A64C805E0B4089_Kanban.Column',
+  Feature: 'WEF_1D473EAF74AC4889A7290D6A94F049D6_Kanban.Column',
+  Epic: 'WEF_49C1B63C5FC64501B5B141CD9EC8AFF7_Kanban.Column',
 };
 /** Cards are only on the Development board while they sit in this area path. */
-const AREA_PATH = 'GymBugHub\\Development';
+const AREA_PATH = 'Fred Personal Work\\Development';
 
 const argv = process.argv.slice(2);
 const cmd = argv[0];
@@ -115,7 +116,6 @@ const flagValue = (flag) => {
 const flagValueIndexes = new Set(argv.map((a, i) => (a.startsWith('--') ? i + 1 : -1)).filter((i) => i > 0));
 const posArgs = argv.slice(1).filter((a, i) => !a.startsWith('--') && !flagValueIndexes.has(i + 1));
 
-const slugToPascal = (s) => s.split('-').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
 const posix = (p) => p.replace(/\\/g, '/');
 const emit = (obj, text) => { if (JSON_OUT) console.log(JSON.stringify(obj, null, 2)); else text(); };
 const ago = (iso) => {
@@ -124,67 +124,6 @@ const ago = (iso) => {
   if (mins < 1440) return Math.round(mins / 60) + 'h ago';
   return Math.round(mins / 1440) + 'd ago';
 };
-
-// -------------------------------------------------------------- project graph
-/** Projects as the .sln lists them: backslash paths relative to the solution. */
-function solutionProjects() {
-  const sln = readFileSync(SLN, 'utf8');
-  const out = [];
-  for (const line of sln.split(/\r?\n/)) {
-    if (!line.startsWith('Project(')) continue;
-    const m = line.match(/, "([^"]*\.csproj)"/);
-    if (!m) continue;
-    const relPath = m[1]; // GymBug.Domain\GymBug.Domain.csproj
-    const abs = resolve(dirname(SLN), relPath.replace(/\\/g, '/'));
-    out.push({ relPath, abs, dir: posix(relative(ROOT, dirname(abs))), name: basename(abs, '.csproj') });
-  }
-  return out;
-}
-
-/** dependents: project abs path -> Set of abs paths that reference it. */
-function dependentsIndex(projects) {
-  const dependents = new Map(projects.map((p) => [p.abs, new Set()]));
-  for (const p of projects) {
-    let xml = '';
-    try { xml = readFileSync(p.abs, 'utf8'); } catch { continue; }
-    for (const m of xml.matchAll(/<ProjectReference\s+Include="([^"]+)"/g)) {
-      const target = resolve(dirname(p.abs), m[1].replace(/\\/g, '/'));
-      if (dependents.has(target)) dependents.get(target).add(p.abs);
-    }
-  }
-  return dependents;
-}
-
-/** The project a file belongs to: the deepest project directory containing it. */
-function ownerOf(file, projects) {
-  const f = posix(file);
-  let best = null;
-  for (const p of projects) {
-    if ((f === p.dir || f.startsWith(p.dir + '/')) && (!best || p.dir.length > best.dir.length)) best = p;
-  }
-  return best;
-}
-
-/** Everything that must rebuild when seeds change: the seeds plus their dependents, transitively. */
-function reverseClosure(seeds, dependents) {
-  const seen = new Set(seeds);
-  const queue = [...seeds];
-  while (queue.length) {
-    for (const d of dependents.get(queue.pop()) ?? []) {
-      if (!seen.has(d)) { seen.add(d); queue.push(d); }
-    }
-  }
-  return seen;
-}
-
-function changedFiles() {
-  const run = (args) => {
-    try { return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8' }).split(/\r?\n/).filter(Boolean); }
-    catch { return []; }
-  };
-  // Working tree AND anything already committed on this branch — a stage mid-flight has both.
-  return [...new Set([...run(['diff', '--name-only', 'HEAD']), ...run(['diff', '--name-only', 'main...HEAD'])])];
-}
 
 // --------------------------------------------------------------------- ledger
 const ledgerPath = (slug) => join(STATE, slug + '.json');
@@ -247,7 +186,7 @@ function mustRead(slugInput) {
 // ---------------------------------------------------- derived scenario progress
 /** Scenario titles, read from the frozen contract. Never stored — always re-read. */
 function scenariosOf(slug) {
-  const file = join(FEATURES, slugToPascal(slug) + '.feature');
+  const file = join(FEATURES, slug + '.feature');
   if (!existsSync(file)) return null;
   const titles = [];
   for (const line of readFileSync(file, 'utf8').split(/\r?\n/)) {
@@ -257,34 +196,42 @@ function scenariosOf(slug) {
   return { file: posix(relative(ROOT, file)), titles };
 }
 
-/** Green count from the newest .trx, bucketed by the Reqnroll class for this feature. */
-function greenFromTrx(slug) {
-  const dir = join(ROOT, 'backend', 'GymBug.Acceptance.Tests', 'TestResults');
-  if (!existsSync(dir)) return null;
-  let newest = null;
-  for (const f of readdirSync(dir).filter((n) => n.endsWith('.trx'))) {
-    const p = join(dir, f);
-    const mtime = statSync(p).mtimeMs;
-    if (!newest || mtime > newest.mtime) newest = { p, mtime };
+/**
+ * Green count for this slug, from the cucumber-js JSON report.
+ *
+ * Replaces the .trx reader: there is no MSTest here. `npm run test:acceptance --
+ * --tags @<slug> --format json:test-results/<slug>.json` writes one file per slug,
+ * so there is no "newest file" ambiguity and no class-name bucketing.
+ *
+ * A scenario counts as green only when every step passed. cucumber-js reports an
+ * unimplemented step as `undefined`, which is exactly what /spec's gate wants to
+ * see: the contract parses, every scenario runs, nothing is green yet.
+ *
+ * Returns null for "no run on record", never {passed: 0}. Reporting the second
+ * when the first is true is how a healthy feature gets declared broken.
+ */
+function greenFromCucumber(slug) {
+  const file = join(RESULTS, slug + '.json');
+  if (!existsSync(file)) return null;
+  let report;
+  try {
+    report = JSON.parse(readFileSync(file, 'utf8'));
+  } catch {
+    return null;
   }
-  if (!newest) return null;
-
-  const xml = readFileSync(newest.p, 'utf8');
-  const cls = slugToPascal(slug) + 'Feature';
-  const ours = new Set();
-  for (const m of xml.matchAll(/<UnitTest\b[^>]*\bid="([^"]+)"[\s\S]*?className="([^"]*)"/g)) {
-    if (m[2].includes(cls)) ours.add(m[1]);
-  }
-  if (!ours.size) return null;
+  if (!Array.isArray(report)) return null;
 
   let passed = 0;
   let total = 0;
-  for (const m of xml.matchAll(/<UnitTestResult\b[^>]*\btestId="([^"]+)"[^>]*\boutcome="([^"]*)"/g)) {
-    if (!ours.has(m[1])) continue;
-    total++;
-    if (m[2] === 'Passed') passed++;
+  for (const feature of report) {
+    for (const el of feature.elements ?? []) {
+      if (el.type && el.type !== 'scenario') continue;
+      total++;
+      const steps = el.steps ?? [];
+      if (steps.length && steps.every((st) => st.result?.status === 'passed')) passed++;
+    }
   }
-  return total ? { passed, total, at: new Date(newest.mtime).toISOString() } : null;
+  return total ? { passed, total, at: new Date(statSync(file).mtimeMs).toISOString() } : null;
 }
 
 // ------------------------------------------------------------ the state machine
@@ -296,7 +243,7 @@ function readState(l) {
   const done = l.stages.map((s) => s.stage);
   const last = l.stages[l.stages.length - 1] ?? null;
   const s = scenariosOf(l.slug);
-  const g = greenFromTrx(l.slug);
+  const g = greenFromCucumber(l.slug);
 
   let phase;
   let nextStage = null;
@@ -331,87 +278,6 @@ function readState(l) {
 }
 
 // ------------------------------------------------------------------- commands
-function cmdAffected() {
-  const projects = solutionProjects();
-  const explicit = flagValue('--files');
-  const slug = flagValue('--slug');
-  const files = explicit ? explicit.split(',').map((s) => s.trim()).filter(Boolean) : changedFiles();
-  const backend = files.filter((f) => posix(f).startsWith('backend/'));
-
-  if (!backend.length) {
-    emit({ affected: [], reason: 'no backend files changed', changedElsewhere: files.length }, () => {
-      const elsewhere = files.length ? ' (' + files.length + ' changed elsewhere)' : '';
-      console.log('gauntlet: no backend files changed' + elsewhere + '.');
-      console.log('Nothing to build in backend/. Frontend scope is `ng build <app>` — not this tool.');
-    });
-    process.exit(2);
-  }
-
-  const seeds = new Set();
-  const orphans = [];
-  for (const f of backend) {
-    const owner = ownerOf(f, projects);
-    if (owner) seeds.add(owner.abs);
-    else orphans.push(f);
-  }
-  if (!seeds.size) {
-    emit({ affected: [], reason: 'changed files belong to no project', orphans }, () => {
-      console.log('gauntlet: changed backend files belong to no project in the solution:');
-      for (const o of orphans) console.log('  ' + o);
-    });
-    process.exit(2);
-  }
-
-  const affected = reverseClosure(seeds, dependentsIndex(projects));
-  const rows = projects.filter((p) => affected.has(p.abs));
-  const tests = rows.filter((p) => p.name.endsWith('.Tests'));
-  const allTests = projects.filter((p) => p.name.endsWith('.Tests'));
-  const pct = Math.round((rows.length / projects.length) * 100);
-
-  const slnf = join(ROOT, 'backend', (slug ? 'affected-' + slug : 'affected') + '.slnf');
-  writeFileSync(slnf, JSON.stringify({
-    solution: { path: 'GymBug.sln', projects: rows.map((p) => p.relPath) },
-  }, null, 2) + '\n');
-
-  const slnfRel = posix(relative(ROOT, slnf));
-  const testCmds = tests.map((t) => 'dotnet test backend/' + posix(t.relPath));
-
-  emit({
-    changedFiles: backend.length,
-    seedProjects: [...seeds].map((a) => basename(a, '.csproj')),
-    affected: rows.map((p) => p.name),
-    affectedCount: rows.length,
-    totalProjects: projects.length,
-    percent: pct,
-    testProjects: tests.map((p) => p.name),
-    slnf: slnfRel,
-    buildCommand: 'dotnet build ' + slnfRel,
-    fastBuildCommand: 'dotnet build ' + slnfRel + ' -p:RunAnalyzers=false',
-    testCommands: testCmds,
-    orphans,
-  }, () => {
-    console.log('');
-    console.log('changed       ' + backend.length + ' backend file(s) in ' + seeds.size + ' project(s)');
-    console.log('affected      ' + rows.length + ' of ' + projects.length + ' projects (' + pct + '%) — ' + (projects.length - rows.length) + ' skipped');
-    console.log('test projects ' + tests.length + ' of ' + allTests.length);
-    console.log('');
-    for (const p of rows) console.log('  ' + (seeds.has(p.abs) ? '*' : ' ') + ' ' + p.name);
-    if (orphans.length) {
-      console.log('');
-      console.log('  not in any project (ignored):');
-      for (const o of orphans) console.log('    ' + o);
-    }
-    console.log('');
-    console.log('  * = changed directly, the rest depend on it');
-    console.log('');
-    console.log('build   dotnet build ' + slnfRel);
-    for (const c of testCmds) console.log('test    ' + c);
-    console.log('');
-    console.log('fast iteration (analyzers off — the gate run must NOT use this):');
-    console.log('        dotnet build ' + slnfRel + ' -p:RunAnalyzers=false');
-  });
-}
-
 function cmdPlan() {
   const slug = posArgs[0];
   const title = flagValue('--title');
@@ -623,7 +489,7 @@ function cmdSync() {
     });
   }
 
-  emit({ plan, team: 'Development', project: 'GymBugHub' }, () => {
+  emit({ plan, team: 'Development', project: 'Fred Personal Work' }, () => {
     if (!plan.length) { console.log('gauntlet: ADO is up to date with the ledger.'); return; }
     console.log('');
     console.log(plan.length + ' card(s) behind the ledger. Apply with wit_work_item_write, then run the markSynced command.');
@@ -729,14 +595,13 @@ function cmdStatus() {
         : ' Nothing cheap is queued to pair with — plan something if you want the idle cores used.';
       console.log('NOTE: ' + heavy + ' slugs want a CPU-heavy stage. Run ONE.' + pair);
     }
-    console.log('green is read from the newest acceptance .trx — "-" means no run on record, not zero passing.');
+    console.log('green is read from test-results/<slug>.json — "-" means no run on record, not zero passing.');
     console.log('Scenario counts come from the .feature files, never from the ledger.');
     console.log('');
   });
 }
 
 switch (cmd) {
-  case 'affected': cmdAffected(); break;
   case 'plan': cmdPlan(); break;
   case 'start': cmdStart(); break;
   case 'sign-off': cmdSignOff(); break;
@@ -756,7 +621,6 @@ switch (cmd) {
     console.error('  sign-off <slug> <stage> --gate "…"   record a gate  [--carry "…"]');
     console.error('  block <slug> --why "…" | unblock <slug>');
     console.error('  done <slug>                          archive a finished slug');
-    console.error('  affected [--slug S] [--files a,b]    scope the build to what actually changed');
     console.error('  sync [slug]                          what ADO should say but does not (a plan, not a write)');
     console.error('  synced <slug> <stage>                record that the ADO write landed');
     console.error('  linked <slug>                        record that the Predecessor link landed');

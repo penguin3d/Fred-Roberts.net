@@ -1,0 +1,21 @@
+{
+  "stacks": {
+    "frontend": {
+      "recorded": "2026-09-16",
+      "maxCrap": 1,
+      "scored": 1,
+      "over30": 0,
+      "worstOffenders": [
+        {
+          "crap": 1,
+          "cc": 1,
+          "cov": 100,
+          "fn": "class field initializer @11",
+          "at": "src/app/app.ts:11"
+        }
+      ]
+    }
+  },
+  "note": "CRAP ratchet, source complexity both stacks. maxCrap only ever goes DOWN. Never re-record to turn a red gate green.",
+  "threshold": 30
+}

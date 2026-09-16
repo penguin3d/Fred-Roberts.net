@@ -4,25 +4,19 @@
  *
  *   CRAP(m) = CC² × (1 − cov)³ + CC        Savoia & Evans, 2007. Threshold 30.
  *
- * WHY ONE TOOL: this replaced two, and the two disagreed. The backend script took
- * complexity from OpenCover, which counts IL branch points AFTER the compiler lowers
- * a construct — a plain 11-arm string switch scored 50 there and 13 in source. The
- * frontend script took complexity from ESLint, which reads the syntax tree. Same
- * metric name, same threshold of 30, two different inputs, non-comparable numbers.
+ * ONE STACK HERE. The original served .NET and Angular from one tool, because two
+ * separate scripts had disagreed: the .NET one took complexity from OpenCover, which
+ * counts IL branch points AFTER the compiler lowers a construct, so a plain 11-arm
+ * switch scored 50 there and 13 in source. This workspace is Angular only, so the
+ * .NET adapter is gone and the surviving inputs are:
+ *
+ *   complexity ← ESLint `complexity` rule, threshold forced to 0 so EVERY function
+ *                reports (the default of 10 hides most of them)
+ *   coverage   ← coverage/coverage-final.json (istanbul shape), written by
+ *                `npm run test:coverage`
  *
  * CRAP's threshold of 30 was calibrated by Crap4j against SOURCE cyclomatic
- * complexity, so source is what both adapters report now:
- *
- *   backend   complexity ← SonarAnalyzer S1541, threshold forced to 0 so EVERY
- *                          method reports (default 10 hides most of them)
- *             coverage   ← OpenCover XML (Cobertura carries no per-method data)
- *
- *   frontend  complexity ← ESLint `complexity` rule, threshold forced to 0
- *             coverage   ← coverage-final.json (istanbul shape)
- *
- * Both adapters emit the same record — {file, name, start, end, cc} — and the same
- * join runs over both: count the covered statements inside a function's line span.
- * One formula, one threshold, one baseline format, comparable numbers.
+ * complexity, which is what ESLint reports, so the threshold still means what it meant.
  *
  * Usage (from the repo root):
  *   node tools/crap.mjs backend            # measure .NET
@@ -54,7 +48,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const THRESHOLD = 30;
 
 const argv = process.argv.slice(2);
-const stack = argv.find((a) => !a.startsWith('--')) ?? 'both';
+const stack = argv.find((a) => !a.startsWith('--')) ?? 'frontend';
 const recording = argv.includes('--baseline');
 // indexOf(-1)+1 === 0 would silently hand back argv[0] — read flag values explicitly.
 const flagValue = (flag) => {
@@ -67,8 +61,8 @@ const covArg = flagValue('--coverage');
 const slnArg = flagValue('--sln');
 const slnPath = slnArg ? resolve(ROOT, slnArg) : 'GymBug.sln';
 
-if (!['backend', 'frontend', 'both'].includes(stack)) {
-  console.error(`usage: node tools/crap.mjs <backend|frontend|both> [--baseline] [--top N] [--coverage DIR] [--sln FILE]`);
+if (stack !== 'frontend') {
+  console.error(`usage: node tools/crap.mjs frontend [--baseline] [--top N] [--coverage DIR]`);
   process.exit(1);
 }
 
@@ -96,165 +90,9 @@ function makeCoverageLookup(byFile) {
   };
 }
 
-// ------------------------------------------------------------ backend adapter
-function backendComplexity(quiet) {
-  // A temporary SonarLint.xml drops S1541's threshold to 0 so every method reports
-  // its number; an isolated artifacts path keeps this measurement build from
-  // fighting a normal build (or another agent's) over obj/.
-  const tmp = mkdtempSync(join(tmpdir(), 'crap-sonar-'));
-  const sonarLint = join(tmp, 'SonarLint.xml');
-  writeFileSync(
-    sonarLint,
-    `<?xml version="1.0" encoding="UTF-8"?>
-<AnalysisInput><Rules><Rule>
-  <Key>S1541</Key>
-  <Parameters><Parameter>
-    <Key>maximumFunctionComplexityThreshold</Key><Value>0</Value>
-  </Parameter></Parameters>
-</Rule></Rules></AnalysisInput>`
-  );
-
-  // S1541 ships DISABLED — SonarLint.xml only tunes its parameter. A ruleset is
-  // what actually switches it on for the build.
-  const ruleset = join(tmp, 'crap.ruleset');
-  writeFileSync(
-    ruleset,
-    `<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="crap" ToolsVersion="16.0">
-  <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
-    <Rule Id="S1541" Action="Warning" />
-  </Rules>
-</RuleSet>`
-  );
-
-  const props = join(tmp, 'crap.props');
-  writeFileSync(
-    props,
-    `<Project>
-  <ItemGroup>
-    <AdditionalFiles Include="${sonarLint.split('\\').join('/')}" />
-  </ItemGroup>
-  <PropertyGroup>
-    <NoWarn>$(NoWarn)</NoWarn>
-  </PropertyGroup>
-</Project>`
-  );
-
-  if (!quiet) console.error(`measuring backend complexity (analyzer build of ${slnArg ?? 'GymBug.sln — pass --sln to scope it'})…`);
-  let out = '';
-  try {
-    out = execFileSync(
-      'dotnet',
-      [
-        'build', slnPath,
-        '--no-incremental',
-        '--artifacts-path', join(tmp, 'art'),
-        '-v', 'n', '--nologo',
-        `-p:CustomAfterMicrosoftCommonProps=${props}`,
-        `-p:CodeAnalysisRuleSet=${ruleset}`,
-        '-warnaserror:none',
-        '-p:TreatWarningsAsErrors=false',
-        '-p:RunAnalyzers=true',
-      ],
-      { cwd: join(ROOT, 'backend'), encoding: 'utf8', maxBuffer: 512 * 1024 * 1024 }
-    );
-  } catch (e) {
-    out = (e.stdout ?? '') + (e.stderr ?? '');
-  }
-
-  const fns = [];
-  const seen = new Set();
-  for (const line of out.split(/\r?\n/)) {
-    const m = line.match(/backend[\\/](.+?)\((\d+),\d+\): warning S1541: .*?is (\d+) which/);
-    if (!m) continue;
-    const file = m[1].split('\\').join('/');
-    if (/\/obj\/|\.g\.cs$|\.Designer\.cs$|\/Migrations\//i.test(file)) continue;
-    const key = `${file}:${m[2]}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    // S1541 points at the method signature; the coverage join needs a span, and
-    // OpenCover's own line data is what bounds it — take a generous window and let
-    // the statement filter decide. 400 lines is longer than anything sane here.
-    fns.push({ file, name: null, start: +m[2], end: +m[2] + 400, cc: +m[3] });
-  }
-  rmSync(tmp, { recursive: true, force: true });
-  return fns;
-}
-
-function backendCoverage(dir) {
-  const files = [];
-  (function walk(d) {
-    if (!existsSync(d)) return;
-    for (const e of readdirSync(d, { withFileTypes: true })) {
-      const p = join(d, e.name);
-      if (e.isDirectory()) walk(p);
-      else if (e.name.endsWith('.xml')) files.push(p);
-    }
-  })(dir);
-
-  const byFile = new Map();
-  const methodSpans = new Map(); // file -> [{start, end, name}]
-  for (const f of files) {
-    const xml = readFileSync(f, 'utf8');
-    if (!xml.includes('<CoverageSession')) continue;
-    for (const mod of xml.split('<Module ').slice(1)) {
-      const name = mod.match(/<ModuleName>([^<]+)<\/ModuleName>/)?.[1] ?? '';
-      if (!name.startsWith('GymBug') || name.endsWith('.Tests')) continue;
-      const paths = {};
-      for (const p of mod.matchAll(/<File uid="(\d+)" fullPath="([^"]+)"/g)) {
-        paths[p[1]] = p[2].split('\\').join('/').replace(/^.*\/backend\//, '');
-      }
-      for (const meth of mod.split('<Method ').slice(1)) {
-        const uid = meth.match(/<FileRef uid="(\d+)"/)?.[1];
-        const src = paths[uid];
-        if (!src) continue;
-        const mName = meth.match(/<Name>([^<]+)<\/Name>/)?.[1] ?? '';
-        // OpenCover emits SequencePoint attributes as vc=… before sl=…, so read
-        // each attribute independently rather than assuming an order.
-        const lines = [];
-        for (const sp of meth.matchAll(/<SequencePoint\b([^>]*)\/>/g)) {
-          const attrs = sp[1];
-          const sl = Number(/\bsl="(\d+)"/.exec(attrs)?.[1]);
-          const vc = Number(/\bvc="(\d+)"/.exec(attrs)?.[1]);
-          if (Number.isFinite(sl) && Number.isFinite(vc)) lines.push({ sl, vc });
-        }
-        if (lines.length === 0) continue;
-
-        const d = byFile.get(src) ?? { statements: {}, hits: {} };
-        for (const { sl, vc } of lines) {
-          const id = `${src}:${sl}`;
-          d.statements[id] = sl;
-          d.hits[id] = Math.max(d.hits[id] ?? 0, vc); // union across suites
-        }
-        byFile.set(src, d);
-
-        // XML-decode, drop return type + params, and unwrap compiler async state
-        // machines: Ns.Class/<Handle>d__2::MoveNext → Class::Handle.
-        let clean = mName
-          .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
-          .replace(/^[^ ]+ /, '')
-          .replace(/\(.*/, '');
-        const sm = clean.match(/^(.*)\/<(\w+)>d__\d+::MoveNext$/);
-        if (sm) clean = `${sm[1]}::${sm[2]}`;
-        const sep = clean.indexOf('::');
-        const type = clean.slice(0, sep).split('.').pop().replace('/', '.');
-
-        const spans = methodSpans.get(src) ?? [];
-        spans.push({
-          start: Math.min(...lines.map((l) => l.sl)),
-          end: Math.max(...lines.map((l) => l.sl)),
-          name: `${type}::${clean.slice(sep + 2)}`,
-        });
-        methodSpans.set(src, spans);
-      }
-    }
-  }
-  return { byFile, methodSpans };
-}
-
 // ----------------------------------------------------------- frontend adapter
 function frontendComplexity(quiet) {
-  const bin = join(ROOT, 'frontend', 'node_modules', 'eslint', 'bin', 'eslint.js');
+  const bin = join(ROOT, 'node_modules', 'eslint', 'bin', 'eslint.js');
   if (!existsSync(bin)) {
     console.error(`crap: eslint not found at ${bin}`);
     process.exit(1);
@@ -264,8 +102,8 @@ function frontendComplexity(quiet) {
   try {
     out = execFileSync(
       process.execPath,
-      [bin, 'projects', '--format', 'json', '--rule', '{"complexity":["warn",0]}'],
-      { cwd: join(ROOT, 'frontend'), encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }
+      [bin, 'src', '--format', 'json', '--rule', '{"complexity":["warn",0]}'],
+      { cwd: ROOT, encoding: 'utf8', maxBuffer: 256 * 1024 * 1024 }
     );
   } catch (e) {
     out = e.stdout;
@@ -284,7 +122,7 @@ function frontendComplexity(quiet) {
       const quoted = /'([^']+)'/.exec(m.message)?.[1];
       const kind = /^([A-Za-z ]+?) (?:'|has a complexity)/.exec(m.message)?.[1] ?? 'function';
       fns.push({
-        file: file.filePath.split('\\').join('/').replace(/^.*\/frontend\//, ''),
+        file: file.filePath.split('\\').join('/').replace(ROOT.split('\\').join('/') + '/', ''),
         name: quoted ?? `${kind.toLowerCase()} @${m.line}`,
         start: m.line,
         end: m.endLine ?? m.line,
@@ -296,7 +134,7 @@ function frontendComplexity(quiet) {
 }
 
 function frontendCoverage() {
-  const dir = join(ROOT, 'frontend', 'coverage');
+  const dir = join(ROOT, 'coverage');
   const files = [];
   (function walk(d) {
     if (!existsSync(d)) return;
@@ -310,7 +148,7 @@ function frontendCoverage() {
   const byFile = new Map();
   for (const f of files) {
     for (const [path, data] of Object.entries(JSON.parse(readFileSync(f, 'utf8')))) {
-      const key = path.split('\\').join('/').replace(/^.*\/frontend\//, '');
+      const key = path.split('\\').join('/').replace(ROOT.split('\\').join('/') + '/', '');
       const d = byFile.get(key) ?? { statements: {}, hits: {} };
       for (const [id, loc] of Object.entries(data.statementMap ?? {})) {
         const gid = `${key}:${id}`;
@@ -352,7 +190,7 @@ function measure(which, quiet) {
 
   const byFile = frontendCoverage();
   if (byFile.size === 0) {
-    console.error('crap: no frontend coverage. Run: cd frontend && npm run test:coverage');
+    console.error('crap: no coverage. Run: npm run test:coverage');
     process.exit(1);
   }
   const lookup = makeCoverageLookup(byFile);

@@ -6,7 +6,13 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "lint": "eslint src",
+    "test:acceptance": "NODE_OPTIONS='--import tsx' cucumber-js",
+    "test:coverage": "ng test --coverage",
+    "test:coverage:gate": "ng test --runner-config vitest.gate.config.ts --coverage",
+    "crap:check": "node tools/crap.mjs frontend",
+    "e2e": "playwright test"
   },
   "prettier": {
     "printWidth": 100,
@@ -39,10 +45,11 @@
     "@cucumber/cucumber": "^13.2.1",
     "@playwright/test": "^1.63.0",
     "@stryker-mutator/core": "^10.0.0",
-    "@vitest/coverage-v8": "^5.0.1",
+    "@vitest/coverage-v8": "^4.1.11",
     "angular-eslint": "^22.5.0",
     "eslint": "^10.10.0",
     "jsdom": "^27.1.0",
+    "tsx": "^4.23.13",
     "typescript": "~5.9.2",
     "typescript-eslint": "^8.70.0",
     "vitest": "^4.0.8"
