@@ -11,3 +11,7 @@ Read docs for the version we run (column 2); update the row whenever a version b
 | [Playwright](https://playwright.dev/docs/test-runners) | 1.63 | `package.json` |
 | [StrykerJS](https://stryker-mutator.io/docs/stryker-js/introduction/) | 10.0 | `package.json` |
 | [ESLint](https://eslint.org/docs/latest/) / [angular-eslint](https://github.com/angular-eslint/angular-eslint) | 10.10 | `package.json` |
+| [Angular SSR](https://angular.dev/guide/ssr) / [server routing](https://angular.dev/guide/hybrid-rendering) | 21.2 | `package.json` |
+| [Express](https://expressjs.com/en/5x/api.html) | 5.2 | `package.json` |
+| [google-auth-library](https://github.com/googleapis/google-auth-library-nodejs#verifying-id-tokens) | 11.0 | `package.json` |
+| [Google Identity Services](https://developers.google.com/identity/gsi/web/reference/html-reference) | n/a — loaded from Google | `src/boundary/views.ts` |

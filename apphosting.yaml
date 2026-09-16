@@ -1,11 +1,41 @@
 # Firebase App Hosting runtime config.
 #
-# This is a static Angular build with no SSR: the server is only serving files,
-# so it is sized small and scales to zero. Raise minInstances above 0 only if
-# cold starts become a problem worth paying for.
+# This is an Angular SSR build: the server is `dist/fredroberts-net/server/server.mjs`,
+# and it is not optional. The sign-in boundary decides every page request before anything
+# is rendered, which is the whole point — a check that shipped in the browser bundle would
+# be a check the visitor could read.
 runConfig:
   minInstances: 0
   maxInstances: 1
   concurrency: 80
   cpu: 1
   memoryMiB: 512
+
+# The boundary's four settings. Every one of them is absent by default, and absent means
+# nobody gets in — including Fred. An unconfigured deploy is a plain public site.
+#
+# They are commented out until the Secret Manager secrets behind them exist; uncommenting
+# a reference to a secret that has not been created fails the deploy. To switch the
+# boundary on:
+#
+#   1. Create a Google OAuth 2.0 Web client, with this site's origin as an authorised
+#      origin and <entrance>/callback as an authorised redirect URI.
+#   2. firebase apphosting:secrets:set sign-in-entrance-path      # e.g. /a-quiet-door-2f91c7
+#      firebase apphosting:secrets:set allowed-google-account-id  # Fred's Google `sub`
+#      firebase apphosting:secrets:set google-oauth-client-id
+#      firebase apphosting:secrets:set session-secret             # 32+ random bytes
+#   3. Uncomment the block below and deploy.
+#
+# env:
+#   - variable: SIGN_IN_ENTRANCE_PATH
+#     secret: sign-in-entrance-path
+#     availability: [RUNTIME]
+#   - variable: ALLOWED_GOOGLE_ACCOUNT_ID
+#     secret: allowed-google-account-id
+#     availability: [RUNTIME]
+#   - variable: GOOGLE_OAUTH_CLIENT_ID
+#     secret: google-oauth-client-id
+#     availability: [RUNTIME]
+#   - variable: SESSION_SECRET
+#     secret: session-secret
+#     availability: [RUNTIME]
