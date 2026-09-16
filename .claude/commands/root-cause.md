@@ -26,7 +26,7 @@ Summarize what you understand the reported behavior to be in 2-3 bullet points, 
 
 Launch 1-3 Explore agents to trace code paths that could explain the symptoms:
 
-- Search both `backend/` and the relevant frontend project (`web-app/`, `gym-bug-screens/`, `gym-bug-mobile/`)
+- Search `src/`, and the `features/` contracts for the behaviour that is wrong
 - Trace the full data flow: API endpoint → handler/query → DTO → frontend component → template
 - Look for known patterns from CLAUDE.md (timezone bugs, weekly limit day, etc.)
 

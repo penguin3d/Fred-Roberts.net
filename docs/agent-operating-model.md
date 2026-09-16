@@ -79,7 +79,7 @@ flowchart LR
     I --> D["<b>Pipeline board</b><br/>Development<br/>column: Harden"]
 
     P -.->|"reads WEF_488FE395…"| I
-    D -.->|"reads WEF_79FE1C60…"| I
+    D -.->|"reads WEF_E38AF6C0…"| I
 
     style I fill:#E3F0F1,stroke:#1A6B76,color:#16202B
     style P fill:#FFFFFF,stroke:#5A6B7A,color:#16202B
@@ -104,8 +104,8 @@ Two writes, and they *are* the act of starting work:
 
 ```
 System.AreaPath                                    -> Fred Personal Work\Development
-WEF_79FE1C605ACB4C4F846C090E137BC796_Kanban.Column -> Spec    (User Story / Bug)
-WEF_1B4F0CF57E764A8F947F2E47DC79F6FF_Kanban.Column -> Spec    (Feature)
+WEF_E38AF6C093F34082A7A64C805E0B4089_Kanban.Column -> Spec    (User Story / Bug)
+WEF_1D473EAF74AC4889A7290D6A94F049D6_Kanban.Column -> Spec    (Feature)
 ```
 
 Then `gauntlet plan <slug> --title "…" --ado <id>` so the ledger holds the link.
@@ -117,7 +117,7 @@ The item **keeps its parent Feature/Epic**, so the product hierarchy is never br
 `System.BoardColumn` is **read-only**. Writing it fails with
 `TF401326: Invalid field status 'ReadOnly'`. The writable field is a per-board `WEF_…` field, and
 **its GUID is not the board id** — the Development Stories board is `d0eccefd-6a96-…` but its
-column field is `WEF_79FE1C60…`. They are unrelated identifiers, so the field name cannot be
+column field is `WEF_E38AF6C0…`. They are unrelated identifiers, so the field name cannot be
 derived. Read it once from:
 
 ```

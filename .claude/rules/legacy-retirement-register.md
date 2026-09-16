@@ -7,7 +7,7 @@ cleanup happens deliberately, entry by entry — never all at once.
 
 ## When to act
 
-1. **Bojan mentions legacy that should eventually be removed** ("we'll clean this up later",
+1. **Fred mentions legacy that should eventually be removed** ("we'll clean this up later",
    "keep it until the legacy app dies", "that endpoint goes away when X retires"):
    **ask one short question — "Record this in the Legacy Retirement Register?"** — and on
    yes, append an entry in the register's exact entry format (it is documented at the top of

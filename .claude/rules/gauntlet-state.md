@@ -29,8 +29,8 @@ Two fields, both required — this is the act of starting work:
 
 ```
 System.AreaPath  -> Fred Personal Work\Development        (puts it on the Development board)
-WEF_79FE1C605ACB4C4F846C090E137BC796_Kanban.Column -> Spec     (User Story / Bug)
-WEF_1B4F0CF57E764A8F947F2E47DC79F6FF_Kanban.Column -> Spec     (Feature)
+WEF_E38AF6C093F34082A7A64C805E0B4089_Kanban.Column -> Spec     (User Story)
+WEF_1D473EAF74AC4889A7290D6A94F049D6_Kanban.Column -> Spec     (Feature)
 ```
 
 Then `gauntlet plan <slug> --title "…" --ado <id>` so the ledger holds the link. The item keeps
@@ -114,18 +114,15 @@ Do not ask a question and wait. Park it with `block` and end your turn.
 
 The gate is the scope, and nothing wider:
   build   npx ng build
-  test    ONLY the test classes that cover the files you touched (--filter), plus
-          --filter "Category=<slug>" on the acceptance project;
-          frontend: npx ng test <app> --include '<your spec glob>' and npx eslint <your files>
+  test    ONLY the specs that cover the files you touched:
+          npx ng test --include '<your spec glob>' and npx eslint <your files>, plus
+          npm run test:acceptance -- --tags @<slug> --format json:test-results/<slug>.json
   never   a bare ng test across every spec, or an unscoped stryker run,
           or any run over files you did not touch. Other sessions share these 4 cores.
   Widening one step (a whole test project) is a decision you write in the report with a reason.
 
-Disk: C: is small and shared by every worktree. Before EVERY build, test or mutation run check
-free space (PowerShell: (Get-PSDrive C).Free/1MB). Under 2 GB: stop and block with the number,
-do not push on. When your stage is done, delete what you produced: ./tmp/cov, every
-TestResults/ and StrykerOutput/ dir you created, and any %TEMP%crap-sonar-* or coverage dir
-of yours. bin/ and obj/ stay only if the next stage runs within the hour; otherwise delete them.
+Disk: when your stage is done, delete what you produced: coverage/, test-results/, reports/,
+.stryker-tmp/ and StrykerOutput/. All are gitignored; none should outlive the stage.
 
 End your final message with exactly:
 ✅ DONE — /<stage> <slug> — safe to close

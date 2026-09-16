@@ -24,18 +24,9 @@
  *   node tools/crap.mjs both
  *   node tools/crap.mjs backend --baseline # re-record after real gains
  *   node tools/crap.mjs backend --top 40
- *   node tools/crap.mjs backend --sln backend/affected-<slug>.slnf   # scope the analyzer build
  *
- * ALWAYS pass --sln inside a gauntlet stage. Without it the complexity half does a
- * full --no-incremental analyzer build of GymBug.sln (40 projects) into %TEMP%, which
- * takes minutes, ~3 GB of disk per run, and filled the box when three /clean
- * sessions ran it at once (2026-09-14). The ratchet is still valid on a scoped
- * build: methods outside the scope are unchanged, so the worst CRAP in scope
- * against the recorded baseline is the same question.
  *
  * Coverage must already exist. Produce it with:
- *   backend   dotnet test <proj> --collect:"XPlat Code Coverage;Format=opencover" \
- *               --results-directory <dir>            (default: /tmp/covall)
  *   frontend  cd frontend && npm run test:coverage
  */
 import { readFileSync, writeFileSync, existsSync, readdirSync, mkdtempSync, rmSync, cpSync } from 'node:fs';
@@ -58,8 +49,6 @@ const flagValue = (flag) => {
 const topN = Number(flagValue('--top')) || 20;
 const covArg = flagValue('--coverage');
 // Solution or filter to analyse. Relative to the repo root; defaults to the whole solution.
-const slnArg = flagValue('--sln');
-const slnPath = slnArg ? resolve(ROOT, slnArg) : 'GymBug.sln';
 
 if (stack !== 'frontend') {
   console.error(`usage: node tools/crap.mjs frontend [--baseline] [--top N] [--coverage DIR]`);

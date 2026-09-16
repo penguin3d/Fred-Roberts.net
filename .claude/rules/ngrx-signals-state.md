@@ -5,7 +5,7 @@ paths:
 
 # All data access goes through an NgRx SignalStore
 
-Applies to the `frontend/` workspace (`@ngrx/signals` **21.1.1**, Angular 21).
+Applies to this workspace (`@ngrx/signals` **21.1.1**, Angular 21).
 API below verified against the shipped type definitions, not blog posts.
 
 **Components never fetch and never own server state.** A component injects a store, reads

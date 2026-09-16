@@ -21,7 +21,7 @@ Signal Forms become stable.
 - `input()` / `output()` functions — never the `@Input()` / `@Output()` decorators.
 - `inject()` — never constructor injection.
 - Host bindings via the `host: {}` object in the decorator — never `@HostBinding` / `@HostListener`.
-- Small, single-responsibility components. **`frontend/`: prefer inline templates for small
+- Small, single-responsibility components. **Prefer inline templates for small
   components** (2025 style guide). The established separate
   `.ts`/`.html`/`.scss` files — don't churn it.
 - External template/style paths are relative to the component TS file.
@@ -39,7 +39,7 @@ Signal Forms become stable.
 |---|---|
 | Derived value ("disable button if…") | `computed()` — pure, no side effects, no API calls |
 | State that resets from an upstream signal but stays user-editable | `linkedSignal()` |
-| Async work triggered by signals | `resource()`, or a SignalStore `rxMethod` — in `frontend/` server state MUST live in a store (`ngrx-signals-state.md`) |
+| Async work triggered by signals | `resource()`, or a SignalStore `rxMethod` — server state MUST live in a store (`ngrx-signals-state.md`) |
 | External side effects only (localStorage, non-Angular libs, logging) | `effect()` — never write signals inside it, never fetch in it |
 
 - Update signals with `set` / `update`; never mutate state in place.
@@ -48,7 +48,7 @@ Signal Forms become stable.
 ## Services
 
 - Single responsibility; `providedIn: 'root'` for singletons.
-- `frontend/`: components never touch `HttpClient` — data goes through stores (`ngrx-signals-state.md`).
+- Components never touch `HttpClient` — data goes through stores (`ngrx-signals-state.md`).
 
 ## Routing
 

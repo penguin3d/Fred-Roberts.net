@@ -77,7 +77,7 @@ add it to `_breakpoints.scss` with a comment saying why.
 Responsive breakage is invisible to unit tests — it is caught by looking.
 
 ```bash
-cd frontend && npm run start:admin        # then 360 / 768 / 1280 in devtools
+npm start                                # then 360 / 768 / 1280 in devtools
 ```
 
 For anything shipping a new page, the `/qa` stage proves both stops **from the spec**, not by

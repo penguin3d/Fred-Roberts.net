@@ -43,7 +43,7 @@ already readable. Nothing after the bullets: no offers of further help, no next-
 
 ## Length test
 
-If a sentence does not change what Bojan does next, cut it. Three tight lines beat three
+If a sentence does not change what Fred does next, cut it. Three tight lines beat three
 paragraphs. Expand only when depth is asked for.
 
 ## Don't assume — verify or ask

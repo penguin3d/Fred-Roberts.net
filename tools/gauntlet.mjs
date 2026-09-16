@@ -64,7 +64,7 @@ const STAGES = ['spec', 'code', 'clean', 'harden', 'qa'];
 const EXPENSIVE = new Set(['code', 'clean', 'harden']);
 
 /**
- * Where a signed-off stage puts the card on the GymBugHub "Development" team board.
+ * Where a signed-off stage puts the card on the Fred Personal Work "Development" team board.
  *
  * Column names must match that team's board EXACTLY — they are per-team settings and the
  * ADO MCP cannot read them back, so this map is the only place they are written down. If a
@@ -86,7 +86,7 @@ const BOARD = {
  *
  * `System.BoardColumn` is READ-ONLY — writing it fails with
  * `TF401326: Invalid field status 'ReadOnly'`. The real field is a per-board WEF field, and
- * its GUID is NOT the board id (the Stories board is d0eccefd… but its field is 79FE1C60…),
+ * its GUID is NOT the board id (the Stories board's column field here starts E38AF6C0…),
  * so these cannot be derived — they were read from
  * `GET .../Development/_apis/work/boards/{board}` -> fields.columnField.referenceName.
  *
@@ -141,7 +141,7 @@ const allLedgers = () => (existsSync(STATE)
   : []);
 
 /**
- * Resolve loose input to a slug. Bojan dictates, so "weekly allowance" has to find
+ * Resolve loose input to a slug. Fred dictates, so "weekly allowance" has to find
  * "weekly-allowance-remaining" — speech-to-text never produces hyphens, and making a human
  * pronounce punctuation is a worse fix than making the tool tolerant.
  *

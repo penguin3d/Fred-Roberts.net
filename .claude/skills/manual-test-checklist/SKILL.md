@@ -47,7 +47,7 @@ Rules:
 
 ## Step 3 — File it in Azure DevOps (ado MCP)
 
-1. Project is **`Fred Personal Work`** (id `f688cefd-6d0b-4bda-bcf4-2f0fc43b9e84`) unless the user names another. In Fred Personal Work the **User Story type is repurposed as the verification/test package under a Feature** — that's exactly what this checklist is.
+1. Project is **`Fred Personal Work`** (id `5b95fd54-f4d5-4dfc-9036-dc950c47bbe8`) unless the user names another. In Fred Personal Work the **User Story type is repurposed as the verification/test package under a Feature** — that's exactly what this checklist is.
 2. Identify the **Feature** being tested (usually the feature just worked on in this session). The checklist story becomes its **child**.
 3. Create the work item:
    - `mcp__ado__wit_work_item_write` (action `create`) with `project: "Fred Personal Work"`, `workItemType: "User Story"`.
