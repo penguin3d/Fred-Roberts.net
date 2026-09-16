@@ -1,0 +1,11 @@
+# Firebase App Hosting runtime config.
+#
+# This is a static Angular build with no SSR: the server is only serving files,
+# so it is sized small and scales to zero. Raise minInstances above 0 only if
+# cold starts become a problem worth paying for.
+runConfig:
+  minInstances: 0
+  maxInstances: 1
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
