@@ -115,6 +115,10 @@ function frontendComplexity(quiet) {
 
   const fns = [];
   for (const file of JSON.parse(out)) {
+    // Spec files are not production shape. CRAP asks "is this code too complex for how
+    // well it is tested"; asking it of the tests themselves is meaningless, and they are
+    // excluded from coverage anyway so they could only ever poison the join.
+    if (/\.spec\.ts$/.test(file.filePath)) continue;
     for (const m of file.messages) {
       if (m.ruleId !== 'complexity') continue;
       const cc = Number(/complexity of (\d+)/.exec(m.message)?.[1]);
@@ -162,32 +166,7 @@ function frontendCoverage() {
 }
 
 // ------------------------------------------------------------------- measure
-function measure(which, quiet) {
-  if (which === 'backend') {
-    // Default matches Git Bash's /tmp/covall — node must spell it via tmpdir(),
-    // a literal '/tmp' resolves to <cwd-drive>:\tmp on Windows.
-    const covDir = covArg ?? join(tmpdir(), 'covall');
-    const { byFile, methodSpans } = backendCoverage(covDir);
-    if (byFile.size === 0) {
-      console.error(`crap: no OpenCover data under ${covDir}. Run dotnet test with Format=opencover.`);
-      process.exit(1);
-    }
-    const lookup = makeCoverageLookup(byFile);
-    const rows = [];
-    for (const f of backendComplexity(quiet)) {
-      // S1541 gives the signature line; OpenCover gives real method spans. Match
-      // the nearest span starting at or after the signature to get a name + bound.
-      const span = (methodSpans.get(f.file) ?? [])
-        .filter((s) => s.start >= f.start - 2 && s.start <= f.start + 20)
-        .sort((a, b) => a.start - b.start)[0];
-      if (!span) continue;
-      const cov = lookup(f.file, span.start, span.end);
-      if (cov === null) continue;
-      rows.push({ stack: 'backend', file: f.file, name: span.name, line: f.start, cc: f.cc, cov: cov * 100, crap: crapOf(f.cc, cov) });
-    }
-    return rows;
-  }
-
+function measure(quiet) {
   const byFile = frontendCoverage();
   if (byFile.size === 0) {
     console.error('crap: no coverage. Run: npm run test:coverage');
@@ -204,12 +183,29 @@ function measure(which, quiet) {
 }
 
 // -------------------------------------------------------------------- report
-const rows = [];
-if (stack === 'backend' || stack === 'both') rows.push(...measure('backend', false));
-if (stack === 'frontend' || stack === 'both') rows.push(...measure('frontend', false));
+const rows = measure(false);
 
 if (rows.length === 0) {
-  console.error('crap: nothing scored — complexity and coverage did not overlap.');
+  // Two very different situations, and conflating them turns /clean red for no reason.
+  // Coverage exists (frontendCoverage already exited if it did not), so either there is
+  // genuinely no function to score yet, or complexity and coverage disagree on paths.
+  const cxFiles = new Set(frontendComplexity(true).map((f) => f.file));
+  const covFiles = new Set(frontendCoverage().keys());
+  const shared = [...cxFiles].filter((f) => covFiles.has(f));
+
+  if (shared.length === 0) {
+    // Every function that exists lives in a file coverage deliberately excludes
+    // (main.ts, composition roots, routes). Nothing to weigh. Not a failure.
+    console.log('crap: no scoreable functions. Every function found lives in a file that');
+    console.log('      coverage excludes by design, so there is nothing to weigh.');
+    console.log(`      complexity in: ${[...cxFiles].join(', ') || '(none)'}`);
+    console.log(`      coverage in:   ${[...covFiles].join(', ') || '(none)'}`);
+    process.exit(0);
+  }
+
+  console.error('crap: nothing scored — complexity and coverage cover the same files but');
+  console.error('      no function span lined up. That is a path or span bug, not an empty repo.');
+  console.error(`      shared files: ${shared.join(', ')}`);
   process.exit(1);
 }
 

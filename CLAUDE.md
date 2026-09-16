@@ -28,6 +28,11 @@ state committed on a branch is invisible from every other branch.
 | `/spec` | `npm run test:acceptance -- --tags @<slug> --format json:test-results/<slug>.json` — every scenario **undefined**, nothing green |
 | `/code` | every scenario green · ≥90% line and branch on touched files · `npx eslint` clean · `npx ng build` clean |
 | `/clean` | `node tools/crap.mjs frontend` within baseline · no new function over CC 10 · coverage did not drop |
+
+There is **no `crap-baseline.json` yet** — the placeholder has no functions to score, and a
+baseline recorded off an empty app would ratchet real code against a meaningless number. The
+first `/clean` with actual logic records it: `node tools/crap.mjs frontend --baseline`. After
+that it only ever goes down. Never re-record to turn a red gate green.
 | `/harden` | `npx stryker run --mutate '<touched files>'` ≥80%, zero survivors in new code |
 | `/qa` | `npm run e2e` green, one spec per Scenario, screenshot per criterion |
 

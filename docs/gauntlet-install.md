@@ -106,6 +106,24 @@ Verified: 2 scenarios undefined → exit 1, ledger reads `green 0 of 2`; one bin
   back to source; overriding the globs breaks it. `vitest.config.ts` is now deliberately empty
   and says so.
 
+### Fixes to `crap.mjs` found by running it on a near-empty app
+
+- It scored **spec files** for complexity. CRAP asks whether code is too complex for how well
+  it is tested; asking that of the tests is meaningless, and they are excluded from coverage
+  anyway, so they could only poison the join. Now skipped.
+- "nothing scored" exited 1 in two very different situations. On a repo where every function
+  lives in a file coverage excludes by design (`main.ts`, composition roots, routes) there is
+  genuinely nothing to weigh, and failing there turns `/clean` red for no reason. That case now
+  exits 0 and says which files each side found. A real path or span bug, where the two sides
+  share files but no span lines up, still exits 1 and says so.
+- The dead `measure('backend')` branch was removed; it still called `backendComplexity` and
+  `backendCoverage`, both deleted with the .NET adapter.
+
+`crap-baseline.json` was deliberately **not** committed. One recorded off the scaffold held
+`maxCrap 1` from a class field initializer that no longer exists, which would fail the gate on
+the first real function over CRAP 1 and invite exactly the re-baselining the file forbids. The
+first `/clean` with real logic records it.
+
 ## Unresolved
 
 - Nothing has run through the pipeline end to end. The first real slug is the test of this install.

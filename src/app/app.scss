@@ -1,0 +1,48 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: #101014;
+  color: #f4f4f5;
+}
+
+.placeholder {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.eyebrow {
+  margin: 0;
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a8a93;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 8vw, 4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 0;
+  font-size: 1rem;
+  color: #a1a1ab;
+}
+
+@media (prefers-color-scheme: light) {
+  :host {
+    background: #fbfbfc;
+    color: #16161a;
+  }
+  .eyebrow { color: #6c6c76; }
+  .lede { color: #55555f; }
+}
