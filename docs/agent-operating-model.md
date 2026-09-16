@@ -1,6 +1,6 @@
 # The agent operating model
 
-How work gets from "Bojan wants a thing" to "verified, mutation-tested, on the board as Done" —
+How work gets from "Fred wants a thing" to "verified, mutation-tested, on the board as Done" —
 and what each agent is allowed to decide on the way.
 
 Written 2026-09-11. This document is the reference; the enforcement lives in
@@ -16,13 +16,13 @@ Three artefacts, and keeping them distinct is the whole design:
 
 | | Holds | Lives | Written by | Read by |
 |---|---|---|---|---|
-| **The card** | what the business wants, and why | ADO, both boards | Bojan, via `work-item-intake` | `/spec` — once, then never again |
+| **The card** | what the business wants, and why | ADO, both boards | Fred, via `work-item-intake` | `/spec` — once, then never again |
 | **The `.feature`** | what must be *true* — the executable contract | the repo, frozen after `/spec` | `/spec`, once | stages 2–5, directly |
 | **The ledger** | how far the work got, with what numbers | `~/gauntlet-state/`, outside the repo | every stage, on sign-off | every stage, at start |
 
 ```mermaid
 flowchart TD
-    B["Bojan<br/>says what he wants"] -->|work-item-intake| C["The card<br/><i>business behaviour + Gherkin seed</i>"]
+    B["Fred<br/>says what he wants"] -->|work-item-intake| C["The card<br/><i>business behaviour + Gherkin seed</i>"]
     C -->|"/spec reads it once"| F["The .feature<br/><i>frozen executable contract</i>"]
     F -->|"stages 2-5 read directly"| W["The work<br/><i>code, tests, specs</i>"]
     W -->|"sign-off"| L["The ledger<br/><i>stage + gate numbers</i>"]
@@ -62,20 +62,20 @@ the first is true is how a healthy feature gets declared broken.
 
 ## 2. Two boards, one set of work items
 
-Same ADO project (`GymBugHub`), two teams, each with its own columns over the *same* items.
+Same ADO project (`Fred Personal Work`), two teams, each with its own columns over the *same* items.
 
 | Board | Team | Role | Columns |
 |---|---|---|---|
-| **Product** | `GymBugHub Team` | everything wanted, ever — the standing backlog, ~78 open items needing review and triage | Backlog → Spec / Design → Ready for Dev → In Progress → Code Review → Testing → Ready for Release → Done |
+| **Product** | `Fred Personal Work Team` | everything wanted, ever — the standing backlog | Backlog → Spec / Design → Ready for Dev → In Progress → Ready For Testing → Testing → Ready for Release → Done |
 | **Pipeline** | `Development` | only what is being built right now | Backlog → Spec → Code → Clean → Harden → QA → Done |
 
 ```mermaid
 flowchart LR
     subgraph one["ONE work item — #1375"]
-        I["System.State: Active<br/>System.AreaPath: GymBugHub\Development"]
+        I["System.State: Active<br/>System.AreaPath: Fred Personal Work\Development"]
     end
 
-    I --> P["<b>Product board</b><br/>GymBugHub Team<br/>column: In Progress"]
+    I --> P["<b>Product board</b><br/>Fred Personal Work Team<br/>column: In Progress"]
     I --> D["<b>Pipeline board</b><br/>Development<br/>column: Harden"]
 
     P -.->|"reads WEF_488FE395…"| I
@@ -92,8 +92,8 @@ while the pipeline board tracks each one.
 
 **Two settings had to be fixed for this to be true:**
 
-- `GymBugHub Team` area path is `GymBugHub` with **`includeChildren: true`**. With the ADO
-  default of `false`, moving an item to `GymBugHub\Development` **removes it from the product
+- `Fred Personal Work Team` area path is `Fred Personal Work` with **`includeChildren: true`**. With the ADO
+  default of `false`, moving an item to `Fred Personal Work\Development` **removes it from the product
   board** rather than adding it to the pipeline board. It looks like the item was deleted.
 - `Development` has `bugsBehavior: asRequirements`. The ADO default for a new team (`asTasks`)
   hides Bugs from the board entirely, so a bug pulled into the pipeline would be invisible.
@@ -103,7 +103,7 @@ while the pipeline board tracks each one.
 Two writes, and they *are* the act of starting work:
 
 ```
-System.AreaPath                                    -> GymBugHub\Development
+System.AreaPath                                    -> Fred Personal Work\Development
 WEF_79FE1C605ACB4C4F846C090E137BC796_Kanban.Column -> Spec    (User Story / Bug)
 WEF_1B4F0CF57E764A8F947F2E47DC79F6FF_Kanban.Column -> Spec    (Feature)
 ```
@@ -121,7 +121,7 @@ column field is `WEF_79FE1C60…`. They are unrelated identifiers, so the field 
 derived. Read it once from:
 
 ```
-GET https://dev.azure.com/PeskySix/GymBugHub/{team}/_apis/work/boards/{board}?api-version=7.1
+GET https://dev.azure.com/PeskySix/Fred Personal Work/{team}/_apis/work/boards/{board}?api-version=7.1
     -> fields.columnField.referenceName
 ```
 
@@ -270,7 +270,7 @@ Amber stages saturate all four cores. Teal ones build nothing.
 
 | Stage | Owns | Does **not** own |
 |---|---|---|
-| `/spec` | the `.feature`, and nothing else. Interrogation until ambiguity is zero | reading source — it is *banned* from `backend/`, `frontend/`, `gym-bug-workspace/`; describing any UI |
+| `/spec` | the `.feature`, and nothing else. Interrogation until ambiguity is zero | reading source — it is *banned* from `src/`; describing any UI |
 | `/code` | the implementation, the step bindings, unit tests to the floor | editing the `.feature`; CRAP work; mutation testing; cleanup of code it did not touch |
 | `/clean` | shape — splitting, naming, duplication, boundaries, test readability | **any behaviour change**; fixing bugs it finds (report them); the `.feature` |
 | `/harden` | mutation testing; killing survivors by strengthening assertions; deleting assertion-free tests | **production code — frozen**; refactoring; renaming |
@@ -306,7 +306,7 @@ two disagree, the `.feature` wins and the mismatch is a stage-1 defect.
 
 ### `/spec` is never delegated
 
-It runs on a nine-question interrogation battery with Bojan answering:
+It runs on a nine-question interrogation battery with Fred answering:
 
 1. Which values are **calendar days** vs timezone-aware moments? (`DateOnly` vs `DateTime` — the
    #1 bug source in this codebase)
@@ -326,7 +326,7 @@ stage exists to prevent.
 
 ## 5. The ledger — `tools/gauntlet.mjs`
 
-Built for the agent, not the human. Bojan reads the *report* a session writes from it.
+Built for the agent, not the human. Fred reads the *report* a session writes from it.
 **Every command takes `--json`; parse that, never the table** — column widths are not a contract.
 
 | Command | Does |
@@ -428,58 +428,20 @@ next time.
 
 ---
 
-## 6. Build scoping — the four-core problem
+## 6. Build scoping — does not apply here
 
-`/code` and `/clean` used to prescribe `dotnet build backend/GymBug.sln`: **40 projects, every one
-running SonarAnalyzer** (per `Directory.Build.props`), on a 4-core box with 32 GB RAM. Cores are
-the constraint; memory never was.
+Upstream, `/code` and `/clean` prescribed `dotnet build` over a 40-project solution, every one
+running SonarAnalyzer, on a four-core box. `gauntlet affected` existed to walk the
+`ProjectReference` graph, take the reverse closure of the projects a change touched, and write a
+`.slnf` solution filter so a build was 3 to 13 projects instead of 40.
 
-`gauntlet affected` walks the `ProjectReference` graph, takes the **reverse closure** of the
-projects the changed files live in, and writes a `.slnf` solution filter — the native .NET
-mechanism for exactly this.
+**None of that applies to this workspace.** It is one Angular application: `npx ng build` builds
+it in about a second. The `affected` command and the solution-graph code behind it were removed
+from `tools/gauntlet.mjs` at install rather than left half wired, and the gate in `/code` and
+`/clean` is a plain `ng build`.
 
-```mermaid
-flowchart BT
-    D["GymBug.Domain"] --> DA["GymBug.DataAccess"]
-    DA --> SP["GymBug.Service.Plans<br/><b>◀ you changed this</b>"]
-    SP --> SS["Service.Scheduling"]
-    SP --> SW["Service.Workflows"]
-    SP --> API["GymBug.API"]
-    SP --> T1["Service.Plans.Tests"]
-    SS --> T2["Service.Scheduling.Tests"]
-    API --> AT["Acceptance.Tests"]
-
-    style SP fill:#E3F0F1,stroke:#1A6B76,stroke-width:2px,color:#16202B
-    style SS fill:#F7ECE0,stroke:#A55A16,color:#16202B
-    style SW fill:#F7ECE0,stroke:#A55A16,color:#16202B
-    style API fill:#F7ECE0,stroke:#A55A16,color:#16202B
-    style T1 fill:#F7ECE0,stroke:#A55A16,color:#16202B
-    style T2 fill:#F7ECE0,stroke:#A55A16,color:#16202B
-    style AT fill:#F7ECE0,stroke:#A55A16,color:#16202B
-    style D fill:#FFFFFF,stroke:#5A6B7A,color:#16202B
-    style DA fill:#FFFFFF,stroke:#5A6B7A,color:#16202B
-```
-
-Arrows point **towards what must rebuild**. White nodes are dependencies — `dotnet build` already
-pulls those in. Amber nodes are the dependents: the callers that stop compiling when a signature
-changes. **That** set is what a whole-solution build was really buying, and it is usually small.
-
-Measured on the real graph:
-
-| Change | Projects built | vs solution |
-|---|---|---|
-| one file in `Service.Plans` | **13 of 40** (5 test projects) | 3× less |
-| one file in `Domain` | 33 of 40 | barely helps — honest signal |
-| a leaf `.Tests` project | **1 of 40** | 40× less |
-
-The `.slnf` is written next to the solution and gitignored:
-
-```json
-{ "solution": { "path": "GymBug.sln", "projects": ["GymBug.Service.Plans\\GymBug.Service.Plans.csproj", "…"] } }
-```
-
-`-p:RunAnalyzers=false` gives a faster inner loop. **The gate run must not use it** — Sonar
-`S####` findings in touched files are part of that gate.
+If this ever becomes a multi-project Angular workspace, scope with `ng build <project>`, not by
+reviving that tool.
 
 ### Scheduling: never two heavy stages at once
 
@@ -492,7 +454,7 @@ more than one slug wants a heavy stage, and names what to pair with.
 
 ## 7. Dispatching to worker sessions
 
-Bojan opens sessions and leaves them idle as a pool. **Take a fresh, unused one per stage** —
+Fred opens sessions and leaves them idle as a pool. **Take a fresh, unused one per stage** —
 never one that has already run something. Neither he nor the agent can reset a session, and the
 research is blunt about the consequence: agents begin losing the plot after roughly an hour,
 "re-implementing functions that already exist, fixing bugs that were already fixed, undoing the
@@ -502,7 +464,7 @@ When the pool is empty, say so in the dispatcher session and name which slugs ar
 
 ```mermaid
 sequenceDiagram
-    participant B as Bojan
+    participant B as Fred
     participant M as dispatcher (/loop)
     participant L as ledger
     participant W as fresh worker
@@ -553,7 +515,7 @@ Then move your own card, before you finish:
 Do not ask a question and wait. Park it with `block` and end your turn.
 
 Build scope: gauntlet affected --slug <slug>
-Never `dotnet build` the solution. Start no other build — another session holds the cores.
+Start no other build if another session holds the cores.
 
 End your final message with exactly:
 ✅ DONE — /<stage> <slug> — safe to close
@@ -595,7 +557,7 @@ Next: re-measure CRAP, then sign off.
 [gauntlet] /clean · weekly-allowance-remaining · BLOCKED
 Why: splitting MemberPlanResolver changes observable ordering — needs a decision.
 State: nothing committed, worktree left in place.
-Next: Bojan or /spec to say whether that ordering is contractual.
+Next: Fred or /spec to say whether that ordering is contractual.
 ```
 
 **Comments are the audit trail. The ledger is the status.** The dispatcher reads
@@ -713,19 +675,19 @@ Sources: [Tembo](https://www.tembo.io/blog/multi-agent-orchestration) ·
 
 ---
 
-## 10. Open, as of 2026-09-11
+## 10. Open, as of 2026-09-15
+
+These are this workspace's, not the upstream repo's. The upstream list was about a .NET
+solution, 231 existing scenarios and a four-core scheduling problem, none of which exist here.
 
 | Question | Detail |
 |---|---|
-| **Actor naming in `.feature` files** | Cards now use personas; the 231 existing scenarios use `"Kate"` (384×) and `"Ben"` (85×). Either keep the split deliberately — persona on the card, named actor in the executable example — or rewrite the step definitions, which bind on the quoted actor. **Settle before the first `/spec`.** |
-| **The `user-stories` skill** | Mandates Gherkin, writes to a tree that does not exist. Its INVEST checklist and hamburger slicing are good; its target is dead. Strip and retarget, or delete. |
-| **Frontend is not in the loop** | All ten `.feature` files are backend; `affected` exits 2 on frontend paths. A frontend-only feature has no stage-1 contract today. |
-| **#1375 is an orphan** | No Feature covers plan allowances. Parent it, create the Feature, or leave it as the disposable test item it is. |
-| **Seven unparented Features** | 1300, 1326, 1329, 1331, 1334, 1347, 1362. Backlog grooming, not pipeline work — no slugs. |
-| **Permission prompts** | A worker parked on a `dotnet test` prompt is indistinguishable from one thinking, and the ledger stays silent either way. Run `/fewer-permission-prompts` before any unattended night. |
-| **Dispatch is untested** | The template is written; nothing has been sent through it. Treat the first real dispatch as the test. |
-| **Cloud agents unverified** | `isolation: "remote"` would move builds off the 4-core box entirely, but availability is gated and backend test infra there is unconfirmed. |
-| **`RunAnalyzers=false` unmeasured** | Standard MSBuild property, but SonarAnalyzer's response to it in this solution is untested. Worth a stopwatch. |
+| **Nothing has run through it yet** | The pipeline is installed and each gate has been smoke-tested in isolation. No slug has been through `/spec` to `/qa`. Treat the first real one as the test of the install, not of the idea. |
+| **Actor naming in `.feature` files** | No scenarios exist yet, so the convention is free. Settle it at the first `/spec` and keep it: the step definitions bind on the quoted actor, so changing it later means rewriting bindings. |
+| **No Stop hooks** | Upstream, jscpd duplication and a dead-code scan failed the turn automatically. This install took the pipeline without the hooks layer, so duplication and dead code are `/clean`'s job and nothing enforces them at stage 2. |
+| **`/qa` needs pages to exist** | Stage 5 drives the real UI. Until the site has routes and content, most contracts will be domain-level and stage 5 will have little to click. That is a sequencing fact, not a gap. |
+| **StrykerJS cost is unmeasured here** | The 11 seconds per mutant figure is upstream's, from a different machine and a bigger workspace. Time the first real `/harden` before trusting any estimate. |
+| **Permission prompts** | A session parked on a prompt is indistinguishable from one thinking, and the ledger stays silent either way. Run `/fewer-permission-prompts` before any unattended run. |
 
 ---
 

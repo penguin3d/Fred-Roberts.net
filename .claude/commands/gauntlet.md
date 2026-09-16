@@ -5,7 +5,7 @@ argument-hint: "[slug]  (omit for everything)"
 
 # Gauntlet brief
 
-Read the panel, then **report to Bojan in prose**. He should not have to run this or read raw
+Read the panel, then **report to Fred in prose**. He should not have to run this or read raw
 tool output — that is the whole point of it existing.
 
 ```bash

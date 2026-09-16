@@ -1,11 +1,11 @@
 ---
 name: manual-test-checklist
-description: "Generate a manual-testing checklist for a just-built feature and file it as an ADO User Story under the tested Feature in GymBugHub. USE WHEN the user says 'make a manual testing checklist', 'create a test checklist', or asks to create a testing story for a feature."
+description: "Generate a manual-testing checklist for a just-built feature and file it as an ADO User Story under the tested Feature in Fred Personal Work. USE WHEN the user says 'make a manual testing checklist', 'create a test checklist', or asks to create a testing story for a feature."
 ---
 
 # Manual Test Checklist → ADO User Story
 
-Produce a **short, tester-friendly manual checklist** for a feature that was just built, in the team's house style, and file it as a **User Story** in Azure DevOps via the **ado MCP**, as a **child of the Feature it tests** in the **GymBugHub** project.
+Produce a **short, tester-friendly manual checklist** for a feature that was just built, in the team's house style, and file it as a **User Story** in Azure DevOps via the **ado MCP**, as a **child of the Feature it tests** in the **Fred Personal Work** project.
 
 The goal is a checklist a non-technical tester can follow: **where to go** in the app and **what to tick**. Keep it concrete and skimmable — not exhaustive QA cases.
 
@@ -47,15 +47,15 @@ Rules:
 
 ## Step 3 — File it in Azure DevOps (ado MCP)
 
-1. Project is **`GymBugHub`** (id `f688cefd-6d0b-4bda-bcf4-2f0fc43b9e84`) unless the user names another. In GymBugHub the **User Story type is repurposed as the verification/test package under a Feature** — that's exactly what this checklist is.
+1. Project is **`Fred Personal Work`** (id `f688cefd-6d0b-4bda-bcf4-2f0fc43b9e84`) unless the user names another. In Fred Personal Work the **User Story type is repurposed as the verification/test package under a Feature** — that's exactly what this checklist is.
 2. Identify the **Feature** being tested (usually the feature just worked on in this session). The checklist story becomes its **child**.
 3. Create the work item:
-   - `mcp__ado__wit_work_item_write` (action `create`) with `project: "GymBugHub"`, `workItemType: "User Story"`.
-   - Fields: `System.Title`; `System.Description` with `format: "Html"` and the checklist HTML; `System.AreaPath: "GymBugHub"`; `System.IterationPath: "GymBugHub"`.
+   - `mcp__ado__wit_work_item_write` (action `create`) with `project: "Fred Personal Work"`, `workItemType: "User Story"`.
+   - Fields: `System.Title`; `System.Description` with `format: "Html"` and the checklist HTML; `System.AreaPath: "Fred Personal Work"`; `System.IterationPath: "Fred Personal Work"`.
    - New items start in state **New** — do NOT try to set state on create.
 4. Parent it under the Feature with `mcp__ado__wit_work_item_link_write` (action `link`): `{ id: <checklist id>, linkToId: <feature id>, type: "parent" }`.
-5. GymBugHub User Stories have stock Agile states (**New / Active / Resolved / Closed**) — there is **no "Ready For Testing" state**. Leave the story in **New**; readiness is signaled by the story existing under the Feature. Assign it to the tester if the user names one.
-6. Report the work item **id** and its edit URL: `https://dev.azure.com/PeskySix/GymBugHub/_workitems/edit/<id>`.
+5. Fred Personal Work User Stories have stock Agile states (**New / Active / Resolved / Closed**) — there is **no "Ready For Testing" state**. Leave the story in **New**; readiness is signaled by the story existing under the Feature. Assign it to the tester if the user names one.
+6. Report the work item **id** and its edit URL: `https://dev.azure.com/PeskySix/Fred Personal Work/_workitems/edit/<id>`.
 
 ## Notes
 - This is a checklist story, not a spec — keep scope to "walk and tick".

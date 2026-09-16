@@ -12,7 +12,7 @@ our pin may have APIs latest already deprecated.
 | Where | Pins |
 |---|---|
 | `frontend/package.json` | new-fleet Angular/Ionic/Stripe/… |
-| `gym-bug-workspace/package.json` | legacy versions — they DRIFT from frontend/, check the right one |
+| `package.json` | the one place versions are pinned in this workspace |
 | `backend/Directory.Build.props` | shared .NET pins (EF Core, Npgsql EF, Microsoft.Extensions) |
 | `backend/<Host>/*.csproj` | everything else (Elsa, Stripe.net, Google.Cloud.*, …) |
 

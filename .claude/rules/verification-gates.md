@@ -1,7 +1,6 @@
 # Verification gates — coverage, CRAP, mutation. TDD is optional.
 
-Applies to all product code in `backend/`, `frontend/`, and `gym-bug-workspace/`.
-Test mechanics live in [docs/testing/test-infrastructure.md](../../docs/testing/test-infrastructure.md).
+Applies to all product code in `src/`.
 This rule is the **policy**: what must be true before work is called done.
 
 **Replaces the old `tdd.md`.** Test-first is no longer mandated — write tests before or after
@@ -23,27 +22,24 @@ start, and nobody starts a run another session is paying for.**
 
 The gate of every stage is exactly this, and nothing wider:
 
-1. **Build** the affected project set — `node tools/gauntlet.mjs affected --slug <slug>`
-   then `dotnet build backend/affected-<slug>.slnf`. Never `backend/GymBug.sln`.
-2. **Test** only the tests that cover the files you touched: the unit-test classes for those
-   files, plus this slug's acceptance scenarios. Nothing else runs.
+1. **Build** with `npx ng build`. One application, about a second; there is nothing to scope.
+2. **Test** only the tests that cover the files you touched: their specs, plus this slug's
+   acceptance scenarios. Nothing else runs.
 3. **Measure** coverage from that run — the floor is per touched file, so a scoped run measures
    exactly what the gate asks about.
 
 | Never | Instead |
 |---|---|
-| `dotnet build backend/GymBug.sln` | `dotnet build backend/affected-<slug>.slnf` |
-| `dotnet test` across the solution, or a whole test project | `dotnet test backend/<Svc>.Tests/<Svc>.Tests.csproj --filter "FullyQualifiedName~<TestClassA>\|FullyQualifiedName~<TestClassB>"` — the classes that test the files you touched |
-| the whole acceptance suite | `dotnet test backend/GymBug.Acceptance.Tests/GymBug.Acceptance.Tests.csproj --filter "Category=<slug>"` |
-| `npm run test` / `npm run test:coverage` / `npm run lint` | `npx ng test <app> --include '<spec glob for the files you touched>'` · `npx eslint <files you touched>` |
-| `npx ng build` with no project | `npx ng build <app>` |
+| `npm test` / a bare `ng test` | `npx ng test --include '<spec glob for the files you touched>'` |
+| the whole acceptance suite | `npm run test:acceptance -- --tags @<slug> --format json:test-results/<slug>.json` |
+| `npm run lint` across everything | `npx eslint <files you touched>` |
 | mutation with no `--mutate` | `--mutate` on the files you touched |
 
 Widening is a decision, never a default. Allowed only when a scoped run cannot prove the gate —
 a filter that cannot express the covering set, or a coverage number short because the touched
 file is exercised by tests outside your filter. Widen **one step** (the whole test project,
 never the solution), say so in the report, and say why. A whole-solution build is for a release
-or for a full-suite check Bojan asked for by name; it never belongs inside a gauntlet stage.
+or for a full-suite check Fred asked for by name; it never belongs inside a gauntlet stage.
 </scoped_gate>
 
 ## Coverage — the floor is 90, the goal is 100
@@ -58,18 +54,14 @@ Measured **per file created or modified**, line AND branch. Not a project averag
 
 Measure it, never estimate it, and quote the numbers in the completion report:
 
-| Stack | Command |
-|---|---|
-| Backend | `dotnet test <proj> --collect:"XPlat Code Coverage;Format=opencover"` |
-| `frontend/` | `cd frontend && npx ng test <project> --coverage` |
-| Legacy | `cd gym-bug-workspace && ng test gratitude-strength --watch=false --browsers=ChromeHeadless --code-coverage` |
+| everyday | `npx ng test --coverage` |
+| the gate | `npm run test:coverage:gate` — the same run with the 90% floor enforced |
 
-Backend uses **OpenCover**, not Cobertura — Cobertura carries no cyclomatic complexity, which
-the CRAP gate needs.
+Coverage is istanbul-shaped (`coverage/**/coverage-final.json`), which is what the CRAP gate
+joins against.
 
-**The only exclusions:** EF migrations and generated files, composition roots (`Program.cs`,
-`AppHost.cs`, `app.config.ts`, route/provider wiring), barrel files, pure constant/token files,
-`.html`/`.scss`, and the specs themselves. Nothing else. "Untestable" is a design smell —
+**The only exclusions:** `main.ts`, composition roots (`app.config.ts`, route/provider wiring),
+barrel files, pure constant/token files, `.html`/`.scss`, and the specs themselves. Nothing else. "Untestable" is a design smell —
 extract behind a seam and test it.
 
 ## CRAP — the ratchet
@@ -77,18 +69,18 @@ extract behind a seam and test it.
 `CRAP(m) = CC² × (1 − cov)³ + CC`. Canonical bad is **30**; above CC 30 a method cannot reach
 30 at any coverage, so it must be split.
 
-This codebase starts far above that (12 methods over CC 30), so the gate is a **ratchet against
-a recorded baseline**, same as `dup:baseline` and `fe:deadcode:baseline`:
+This workspace started clean, so the baseline is low and the gate is a **ratchet**: it fails when
+the worst CRAP in scope gets worse than the recorded number.
 
 ```bash
-node tools/crap.mjs backend --sln backend/affected-<slug>.slnf   # fails on regression (--coverage DIR if not /tmp/covall)
-node tools/crap.mjs frontend              # same tool, same threshold, frontend
-node tools/crap.mjs backend --baseline    # re-record after real gains
+npm run test:coverage                     # coverage must exist first
+node tools/crap.mjs frontend              # fails on regression
+node tools/crap.mjs frontend --baseline   # re-record after real gains
 ```
 
-One tool for both stacks, and it measures **source** cyclomatic complexity (SonarAnalyzer S1541
-backend, ESLint `complexity` frontend) — the measure CRAP's threshold of 30 was calibrated
-against. OpenCover's own complexity numbers are IL-based and read far higher; do not use them.
+It measures **source** cyclomatic complexity, from ESLint's `complexity` rule with the threshold
+forced to 0 so every function reports. That is the measure CRAP's threshold of 30 was calibrated
+against.
 
 Never re-record to get green. Lower it as methods are split and covered.
 
@@ -97,38 +89,39 @@ Never re-record to get green. Lower it as methods are split and covered.
 Coverage proves a line ran; it does not prove anything asserted on it. Mutation testing changes
 the code on purpose and checks whether a test notices.
 
-**Run it from inside the test project, and pass the config explicitly. Both halves matter:**
+**Always scope `--mutate`. The command runner spawns a fresh `ng test` per mutant:**
 
 ```bash
-# Backend — cd first, -f second. Neither is optional.
-cd backend/<Svc>.Tests
-dotnet dotnet-stryker -f ../stryker-config.json --project <Svc>.csproj --mutate "**/<Folder>/**"
-```
-
-```bash
-# Frontend
-cd frontend
-npx stryker run                               # @gymbug/core entry points
-npx stryker run stryker.admin.config.json     # admin app  (config is POSITIONAL; -c means --concurrency)
-npx stryker run stryker.member.config.mjs     # member app
+STRYKER_SPECS='app/<area>/**/*.spec.ts' \
+  npx stryker run --mutate 'src/app/<area>/<file>.ts'
 ```
 
 <stryker_invocation>
-The two ways this silently goes wrong, both found the hard way on #1345 (see #1377):
+Three ways this silently goes wrong:
 
-1. **Run it from `backend/` and it goes solution-wide** — all 19 projects, the full suite per
-   project. Two hours, zero mutants tested. `cd` into the test project first.
-2. **Run it from anywhere that is not next to the config and `backend/stryker-config.json`
-   is silently ignored** — `ignore-methods` never applies, logger mutants count against you,
-   and Stryker reports a number that looks fine and governs nothing. Always pass `-f`.
+1. **No `--mutate`** and it mutates all of `src/`. Budget roughly 11 seconds per mutant and
+   work the count out before starting: cold start dominates, so a 27-line file with 18 mutants
+   takes about 3.5 minutes whether the suite is 9 tests or 535.
+2. **`--mutate` widened without widening `STRYKER_SPECS`** leaves survivors that no test was
+   ever run against. That looks exactly like a genuine gap in the tests, and is not one.
+3. **Using Stryker's `vitest` runner instead of the command runner.** It drives Vitest with no
+   Angular builder in the chain, so there is no jsdom environment and no TestBed init. Specs
+   fail on setup and Stryker reads those failures as mutants being killed. The score comes out
+   high and means nothing. `testRunner: 'command'` in the config is load-bearing.
 
-A mutation score obtained without `-f` is not a gate result. Do not sign off on one.
+The config file is a POSITIONAL argument in StrykerJS: `-c` is `--concurrency` and `-f` is the
+deprecated `--files`. Passing the config after either dies with a misleading "concurrency must
+match pattern" error. This is the opposite of Stryker.NET, where `-f` IS the config.
+
+4. **A NaN score passes.** When every mutant found was ignored or uncovered, Stryker reports
+   `Final mutation score of NaN is greater than or equal to break threshold` and exits 0. Nothing
+   was tested. Check the mutant statuses in `reports/mutation/mutation.json` before quoting any
+   score; a run with zero tested mutants is a FAIL, not an 80%.
 </stryker_invocation>
 
 **Mutation score ≥ 80% on touched files, zero survivors in new code.** Config lives in
-[backend/stryker-config.json](../../backend/stryker-config.json) (backend) and
-[frontend/stryker.config.mjs](../../frontend/stryker.config.mjs) (frontend). Surviving
-mutants are not advisory — the survivor list IS the remaining test list.
+[stryker.config.mjs](../../stryker.config.mjs). Surviving mutants are not advisory — the
+survivor list IS the remaining test list.
 
 `--since:main` narrows to changed files, but on this repo it is unreliable when the branch has
 merge commits — prefer `--mutate` with an explicit glob for the files you touched.

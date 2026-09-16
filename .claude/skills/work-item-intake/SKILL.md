@@ -258,15 +258,15 @@ and it goes **around** the item, never into its framing:
 
 ## Filing in ADO
 
-- Project **`GymBugHub`** (`f688cefd-6d0b-4bda-bcf4-2f0fc43b9e84`) unless the requester names
+- Project **`Fred Personal Work`** (`f688cefd-6d0b-4bda-bcf4-2f0fc43b9e84`) unless the requester names
   another. Never file product intake into the old `Gym Bug` project.
-- `mcp__ado__wit_work_item_write`, action `create`. `System.AreaPath: "GymBugHub"`,
-  `System.IterationPath: "GymBugHub"`, multiline fields with `format: "Html"` and entities
+- `mcp__ado__wit_work_item_write`, action `create`. `System.AreaPath: "Fred Personal Work"`,
+  `System.IterationPath: "Fred Personal Work"`, multiline fields with `format: "Html"` and entities
   escaped (`&amp; &lt; &gt; &quot;`).
 - New items start in **New** — do not set state on create.
 - Parent it with `mcp__ado__wit_work_item_link_write` (`type: "parent"`): a User Story under its
   Feature, a Feature under its Epic. An unparented item is an orphan nobody grooms.
-- Report the id and `https://dev.azure.com/PeskySix/GymBugHub/_workitems/edit/<id>`.
+- Report the id and `https://dev.azure.com/PeskySix/Fred Personal Work/_workitems/edit/<id>`.
 - If a write is rejected or the MCP is unavailable, output the finished item text so it can be
   pasted, and say plainly what failed.
 

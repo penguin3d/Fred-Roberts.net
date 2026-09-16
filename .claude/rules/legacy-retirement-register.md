@@ -2,7 +2,7 @@
 
 The register lives at [docs/legacy-retirement-register.md](../../docs/legacy-retirement-register.md).
 It tracks legacy endpoints/files/functions kept alive only for retiring surfaces (chiefly the
-frozen `gym-bug-workspace` apps), each paired with its replacement and removal condition, so
+a retiring surface), each paired with its replacement and removal condition, so
 cleanup happens deliberately, entry by entry — never all at once.
 
 ## When to act

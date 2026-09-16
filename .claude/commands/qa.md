@@ -43,7 +43,7 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 
 ## Owns
 
-- Turning `backend/GymBug.Acceptance.Tests/Features/<PascalName>.feature` — frozen by /spec
+- Turning `features/<slug>.feature` — frozen by /spec
   before any code existed — into an executable Playwright script. **One scenario, one test.**
 - Working out **where in the UI** each scenario surfaces. The Gherkin deliberately carries no
   navigation: /spec never saw the UI, so it could only have guessed. That translation is yours,
@@ -73,62 +73,30 @@ block even when every scenario passes.
 ## Running the system
 
 ```bash
-aspire run          # brings up the API + apps
+npm start           # ng serve on http://localhost:4200
 ```
 
-Ports: 4200 web-app · 4201 gym-bug-screens · 4300 kiosk · 4301 screens · 4302 member · 4303 admin · 4304 site.
-Local admin credentials are in the `reference_local_test_admin` memory.
+One application, one port. There is no API to bring up and no Aspire here: upstream this
+stage booted a distributed .NET stack across seven ports, and none of that applies.
 
-**The stack serves the MAIN checkout, not your worktree.** Aspire's API and every `ng serve`
-run from `C:\Users\bokip\source\repos\gsc-web-3.0`. A slug whose code exists only in
-`gsc-wt\<slug>` is invisible to the running system: the endpoint 404s and the app has no UI
-for it. Check first — `git -C <main> log -1 --oneline` against `gauntlet next --json`'s branch,
-and curl the slug's endpoint. If the code is not on main, do NOT start a second API or a second
-`ng serve` from the worktree (a whole-solution build, and it races Aspire's auto-rebuilder).
-Block with the reason; the dispatcher gets the diff onto main (uncommitted `git apply`, or a
-commit once Bojan validates) and re-dispatches.
+Playwright is configured to start the dev server itself (`webServer` in
+[playwright.config.ts](../../playwright.config.ts)), so `npm run e2e` works from a cold start
+without you running `npm start` first. Run it by hand when you want to look at the app yourself.
 
-## Specs are the deliverable — MCP is a debugging tool
-
-**Your output is a committed Playwright spec file, not a session of clicking.** A spec runs
-headless and in parallel, runs again in CI forever, and crosses a stage boundary the way every
-other gauntlet artefact does — on disk. An MCP session produces no durable artefact, re-decides
-every step, and evaporates when the session ends. The gate below asks for a *script* for exactly
-that reason.
-
-MCP driving also has a cost that is easy to miss: every `browser_snapshot` dumps an accessibility
-tree into the conversation. A twenty-step flow can consume most of a context window and leave
-nothing behind.
-
-**Reach for the `playwright` MCP only when a spec genuinely cannot answer the question:**
-
-| Warranted | Not warranted |
-|---|---|
-| A semantic locator failed and you cannot derive the real one from the feature's language | Performing a check an assertion could perform |
-| Diagnosing a failure whose cause is not visible in the trace | Taking the evidence screenshots — Playwright takes those |
-| The UI surface for a scenario is genuinely unknown and reading the routes did not settle it | Walking a flow "to see if it works" before writing the spec |
-
-Use it for **one page, one question**, then go back to the spec. If you find yourself clicking
-through a whole flow with MCP, stop and write the spec instead.
-
-Playwright's own tooling replaces most of what MCP gets used for, costs no context, and is
-faster:
-
-```bash
-npx playwright test --ui        # time-travel debugging + selector picker
-npx playwright test --trace on  # per-step DOM snapshots, openable after a CI failure
-npx playwright codegen <url>    # record clicks straight into a spec
-```
+**Check the code you are testing is actually the code being served.** `ng serve` watches this
+working tree, so a slug on a branch you have not checked out is invisible to the running app.
+Compare `git branch --show-current` against what `node tools/gauntlet.mjs next <slug> --json`
+records as the branch before you conclude a scenario is unreachable.
 
 ### Where the spec lives
 
-`gym-bug-workspace/` already has a setup — [playwright.config.ts](../../gym-bug-workspace/playwright.config.ts),
-specs in `e2e/`, scripts `npm run e2e` / `e2e:ui` / `e2e:report`.
+Specs live in `e2e/`, config in [playwright.config.ts](../../playwright.config.ts), run with
+`npm run e2e`. The config starts `ng serve` for you and defines the viewport projects the
+responsive rule below expects.
 
-**`frontend/` has no Playwright setup yet.** The first `/qa` run against a new-fleet app
-(kiosk · screens · member · admin · site) establishes one: a config pointing at that app's port,
-and viewport projects per the responsive rule below. That setup is part of the deliverable, not a
-prerequisite someone else owes you.
+The browsers are a separate download from the npm package. If `npm run e2e` fails with a
+missing-executable error, run `npx playwright install` once. That is a prerequisite, not part
+of your deliverable.
 
 ## Method
 

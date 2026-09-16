@@ -58,35 +58,26 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 
 ## Order of work
 
-1. **Measure first.** Rank by CRAP before touching anything. One tool, both stacks —
-   [tools/crap.mjs](../../tools/crap.mjs) — using **source** cyclomatic complexity
-   (SonarAnalyzer S1541 backend, ESLint `complexity` frontend), the measure CRAP's
-   threshold of 30 was calibrated against.
+1. **Measure first.** Rank by CRAP before touching anything, with
+   [tools/crap.mjs](../../tools/crap.mjs), using **source** cyclomatic complexity
+   (ESLint's `complexity` rule), which is the measure CRAP's threshold of 30 was
+   calibrated against.
 
-   Backend — produce OpenCover coverage first (only OpenCover has per-method line data):
-   ```bash
-   dotnet test backend/<Service>.Tests/<Service>.Tests.csproj \
-     --collect:"XPlat Code Coverage;Format=opencover" --results-directory /tmp/covall/<Service>.Tests
-   node tools/crap.mjs backend --top 25 --sln backend/affected-<slug>.slnf   # add --coverage DIR if not /tmp/covall
-   ```
-   **`--sln` is not optional.** Without it the complexity half does a full `--no-incremental`
-   analyzer build of GymBug.sln into %TEMP% (~3 GB, minutes); three /clean sessions doing that at
-   once filled the disk and killed all three on 2026-09-14. Run `gauntlet affected` first so the
-   .slnf exists (pass `--files` if your worktree is clean). Check free space before the run.
-   That whole-test-project run is the ONE deliberate widening this stage is allowed: the CRAP
-   ranking needs per-method coverage for everything it ranks, so a `--filter` would report
-   untouched methods as uncovered. Run it once per touched test project, for the measurement
-   only. Every other run in this stage is scoped to the files you touched
-   (`<scoped_gate>` in verification-gates.md).
+   Produce coverage first, then measure:
 
-   Frontend — name the project, or you measure the whole fleet:
    ```bash
-   cd frontend
-   npm run test:coverage:project <app>   # writes coverage/**/coverage-final.json
-   npm run crap:check                    # = node ../tools/crap.mjs frontend
+   npm run test:coverage          # writes coverage/**/coverage-final.json
+   npm run crap:check             # = node tools/crap.mjs frontend
    ```
-2. **Attack the top of the list, not the whole list.** Anything over CC 30 cannot reach CRAP 30
-   at any coverage — those must be split, testing them harder is arithmetic that doesn't work.
+
+   Complexity comes from ESLint's `complexity` rule with the threshold forced to 0, so every
+   function reports rather than only those over the default of 10. Coverage comes from
+   istanbul's `coverage-final.json`. Both are keyed on paths relative to the repo root, and if
+   they ever stop agreeing the tool says "complexity and coverage did not overlap" rather than
+   scoring nothing silently.
+
+   Attack the top of the list, not the whole list. Anything with **CC > 30 cannot reach CRAP 30**
+ — those must be split, testing them harder is arithmetic that doesn't work.
 3. **Split, then cover.** Splitting a CC 40 method into four CC 10 methods drops CRAP more than
    any amount of new tests would.
 4. Then names, duplication, boundaries.
@@ -94,14 +85,16 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 
 ## Gate
 
-- **CRAP within the recorded baseline** — `node tools/crap.mjs backend` (and/or `frontend`) exits 0.
-- **No new method above CC 10.** Existing ones must not get worse.
+- **CRAP within the recorded baseline** — `node tools/crap.mjs frontend` exits 0.
+- **No new function above CC 10.** Existing ones must not get worse.
 - **Coverage did not drop** on any touched file, and is still ≥90% line and branch.
 - Every unit test and every acceptance scenario still **green**.
-- Duplication not increased — jscpd Stop hook passes, no re-baselining.
-- `dotnet build backend/affected-<slug>.slnf` clean (`node tools/gauntlet.mjs affected --slug <slug>`
-  to regenerate it — your refactor may have widened the affected set); `S####` in touched files
-  treated as errors.
+- `npx eslint src` clean on the files you touched.
+- `npx ng build` clean.
+
+Duplication is **not** gated here. Upstream a jscpd Stop hook failed the turn on new clones;
+this workspace took the pipeline without the hooks layer, so spotting duplication is your job
+at this stage and nothing will catch it for you.
 
 Behaviour preservation is the hard constraint. If a test needed changing to accommodate a
 refactor, you changed behaviour — revert and do it differently. Say so in the report if it happened.

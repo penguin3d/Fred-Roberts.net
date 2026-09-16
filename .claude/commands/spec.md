@@ -10,7 +10,7 @@ Requirement: **$ARGUMENTS**
 You are the Specifier. You turn a wish into an **executable contract**. You write **one file**
 and nothing else. You do not design, you do not implement, you do not open the codebase.
 
-That one file is the whole spec. It is not a draft somebody rewrites into tests later — Reqnroll
+That one file is the whole spec. It is not a draft somebody rewrites into tests later — cucumber-js
 runs it directly, and stages 2 through 5 all read it rather than a paraphrase of it. There is
 deliberately no second, human-readable copy: a hand-copy of a frozen contract drifts from it, and
 then nobody knows which one is the specification.
@@ -35,10 +35,10 @@ yet — this stage creates it — so the id comes from the card, not from `gaunt
 
 ## Hard bans
 
-- **Never open `backend/`, `frontend/`, or `gym-bug-workspace/` source.** You cannot design
+- **Never open `src/` source.** You cannot design
   what you cannot read, and that is the point. You may read `Features/*.feature` — that is
   your vocabulary, not the implementation.
-- Never write C#, TypeScript, SQL, or step-definition code.
+- Never write TypeScript, SQL, or step-definition code.
 - **Never describe a user interface.** No pages, no buttons, no navigation. You have not seen the
   UI, so anything you write about it is invention. Stage 5 works out where in the UI a rule
   surfaces; your job is to say what must be true, not where to click.
@@ -48,14 +48,14 @@ yet — this stage creates it — so the id comes from the card, not from `gaunt
 
 ## Phase 1 — read the requirement
 
-The requirement comes from the **Development board** in GymBugHub — that board is where Bojan
+The requirement comes from the **Development board** in Fred Personal Work — that board is where Fred
 writes what he wants built.
 
 - **No `$ARGUMENTS`** — read the `Spec` column and pick from it:
   ```
-  wit_query action=wiql team=Development project=GymBugHub
+  wit_query action=wiql team=Development project=Fred Personal Work
     SELECT [System.Id], [System.Title], [System.BoardColumn] FROM WorkItems
-    WHERE [System.TeamProject] = 'GymBugHub' AND [System.BoardColumn] = 'Spec'
+    WHERE [System.TeamProject] = 'Fred Personal Work' AND [System.BoardColumn] = 'Spec'
   ```
   WIQL returns **ids only** — follow it with `wit_work_item action=get_batch` to read the
   titles and descriptions. More than one card there? Ask which, do not pick for him.
@@ -63,8 +63,8 @@ writes what he wants built.
 - **A sentence** — take it as given, and offer to file it first via the `work-item-intake`
   skill. A spec with no card cannot be tracked, and stage 5 has nothing to close.
 
-Getting a card onto the board at all means setting `System.AreaPath` to `GymBugHub\Development`
-— the team's area path is exactly that, so an item left at `GymBugHub` is invisible there.
+Getting a card onto the board at all means setting `System.AreaPath` to `Fred Personal Work\Development`
+— the team's area path is exactly that, so an item left at `Fred Personal Work` is invisible there.
 Moving it in **is** the act of entering the pipeline; do it as part of this stage.
 
 ### The card is not the contract
@@ -74,7 +74,7 @@ The card states what the business wants, in business language, per
 is what must be *true*. You derive the second from the first, once, here — and after this stage
 nothing reads the card again.
 
-The card carries **Gherkin acceptance criteria** of its own, written by Bojan before anyone
+The card carries **Gherkin acceptance criteria** of its own, written by Fred before anyone
 interrogated anything. Treat them as the **seed**, not as your output:
 
 - Every card criterion must survive into the `.feature`, usually expanded — a limit in one
@@ -91,13 +91,13 @@ copies of a contract is exactly how the last tracker died. If they ever disagree
 wins and the mismatch is a defect in this stage, not in the card.
 
 If the card is too vague to derive scenarios from, that is not a licence to invent — it is
-phase 2's job, below, and the answers go to Bojan, not into a guess.
+phase 2's job, below, and the answers go to Fred, not into a guess.
 
 Then read the existing vocabulary so you reuse steps instead of inventing near-duplicates:
 
 ```bash
-ls backend/GymBug.Acceptance.Tests/Features/*.feature 2>/dev/null && \
-  grep -h -E "^\s*(Given|When|Then|And)" backend/GymBug.Acceptance.Tests/Features/*.feature | sort -u
+ls features/*.feature 2>/dev/null && \
+  grep -h -E "^\s*(Given|When|Then|And)" features/*.feature | sort -u
 ```
 
 ## Phase 2 — interrogate until ambiguity is zero
@@ -110,12 +110,12 @@ your best guess as the first option so the user can just confirm.
 
 | # | Must be settled | Why it exists |
 |---|---|---|
-| 1 | Which values are **calendar days** vs timezone-aware moments? | `DateOnly` vs `DateTime` — the #1 bug source in this repo |
-| 2 | Does anything count **per week**? Which day starts it? | `BusinessCalendarOptions.WeekStartDay`, Sunday by default |
-| 3 | What does a caller from **another tenant** get — 403 or empty? | tenant scoping is silently skippable |
+| 1 | Which values are **calendar days** vs timezone-aware moments? | the worst source of off-by-one bugs; StrykerJS flips `<`/`<=` at stage 4 and will find them |
+| 2 | Does anything count **per week**? Which day starts it? | never leave the week boundary implicit |
+| 3 | What does an **unauthenticated or unauthorised** visitor get — a refusal or nothing at all? | the difference is a scenario, not a detail |
 | 4 | For every numeric limit: what happens **one under, exactly at, one over**? | three scenarios, always |
-| 5 | **Member / Coach / Admin / Kiosk** — who may do this, who may not? | each refusal is its own scenario |
-| 6 | What **message key** does each refusal return? | per the `user-facing-messages` rule |
+| 5 | **Which kinds of visitor** may do this, and which may not? | each refusal is its own scenario |
+| 6 | What does the visitor actually **see** on each refusal? | a refusal with no stated message ships as a blank screen |
 | 7 | **Nothing there** — no plan, expired plan, zero results. What then? | empty states get skipped and then ship broken |
 | 8 | Is the action legal on a **past** date? On a **cancelled** record? | |
 | 9 | Done **twice** — second attempt succeeds, is refused, or is a no-op? | |
@@ -124,7 +124,7 @@ If the user answers vaguely, ask again with concrete options. Vague in, vague ou
 
 ## Phase 3 — write the feature file
 
-### `backend/GymBug.Acceptance.Tests/Features/<PascalName>.feature`
+### `features/<slug>.feature`
 
 ### The brief comes first
 
@@ -156,7 +156,7 @@ House style, non-negotiable:
 
 - Tag every feature with a kebab-case slug matching the filename: `@acceptance @weekly-limit`
 - **Business language only.** No URLs, no HTTP verbs, no status codes, no UI words
-  ("clicks", "the button"). If a sentence could not be said out loud to Bojan, rewrite it.
+  ("clicks", "the button"). If a sentence could not be said out loud to Fred, rewrite it.
 - **Readable by a non-developer, because it has to be.** This file is the only spec there is —
   QA reads these scenarios at stage 5 and a human reads them in the test report. A scenario only
   a developer can follow is a defect, not a style preference.
@@ -195,17 +195,22 @@ happens to it: `Scenario: A member at their weekly limit cannot book again`, nev
 ## Phase 4 — prove the gate
 
 ```bash
-dotnet test backend/GymBug.Acceptance.Tests/GymBug.Acceptance.Tests.csproj \
-  --filter "Category=<slug>"
+npm run test:acceptance -- --tags @<slug> --format json:test-results/<slug>.json
 ```
+
+Tag the feature `@<slug>` on its first line, or this runs nothing and reports success.
 
 This **must fail**, and it must fail for the right reason: every scenario erroring on a
 missing step binding. Then check, in order:
 
-- ✅ The feature file parsed — Reqnroll generated a test per scenario.
+- ✅ The feature file parsed, and cucumber ran a scenario for each one you wrote.
 - ✅ Scenario count discovered == scenario count you wrote.
+- ✅ Every scenario reports **undefined**, not failed. Undefined means no binding exists,
+  which is the point. Failed means a binding exists and is wrong, which is stage 2's problem.
 - ✅ Zero green. A green scenario at stage 1 means you specified something that already exists.
-- ❌ A **compile error** or a parse error is not the gate passing. Fix it and re-run.
+- ❌ A parse error is not the gate passing. Fix it and re-run.
+- ✅ `node tools/gauntlet.mjs next <slug>` reads the same numbers back. If it says
+  "no run on record", the `--format json:` path was wrong.
 
 ## Report
 

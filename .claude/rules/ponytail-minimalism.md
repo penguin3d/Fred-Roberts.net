@@ -43,7 +43,6 @@ and SOLID wins — when it has a real, present reason here:
 
 - **Test seam:** the codebase mocks `IMediator`, `ResolvePlanQuery`, repositories. An interface
   that exists so a handler is unit-testable is necessary, not speculative — keep it.
-- **Cross-host DI:** `IFoo`+`Foo` registered in both `GymBug.API` and `GymBug.Worker.Workflows`
   is the established Clean Architecture seam — not a single-implementation accident.
 - **Clean Architecture layer boundary:** CQRS commands/queries/handlers and domain-event
   handlers are the house pattern. Follow it; don't "flatten" it in the name of fewer files.

@@ -57,44 +57,34 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 
 ## Running it
 
-**Backend** — Stryker.NET. `cd` into the test project, and pass `-f`. Both, every time:
+There is no .NET here, so there is one runner: **StrykerJS**, via the command runner.
 
 ```bash
-cd backend/<Svc>.Tests
-dotnet dotnet-stryker -f ../stryker-config.json --project <Svc>.csproj \
-  --mutate "**/<Folder>/**"      # the files stage 2 touched, nothing wider
-```
-
-Run it from `backend/` instead and it goes solution-wide: 19 projects, the full suite each, two
-hours, zero mutants tested. Drop the `-f` and
-[backend/stryker-config.json](../../backend/stryker-config.json) is silently ignored, so
-`ignore-methods` never applies, logger mutants count against you, and the score you report
-governs nothing. **A number obtained without `-f` is not a gate result — do not sign off on
-one.** (Both failure modes: #1377.) Config is `coverage-analysis: perTest`, concurrency 2 —
-this is a 4-core box and each worker spawns a full test host.
-
-**Frontend** — StrykerJS, via the command runner:
-
-```bash
-cd frontend
-STRYKER_CORE_SPECS='../<entry>/src/**/*.spec.ts' \
-  npx stryker run --mutate 'projects/gymbug/core/<entry>/src/lib/<file>.ts'
-
-npx stryker run stryker.admin.config.json --mutate '<files you touched>'    # admin app
-STRYKER_MEMBER_SPECS='app/<area>/**/*.spec.ts' \
-  npx stryker run stryker.member.config.mjs --mutate '<files you touched>'   # member app
+# the files stage 2 touched, nothing wider
+STRYKER_SPECS='app/<area>/**/*.spec.ts' \
+  npx stryker run --mutate 'src/app/<area>/<file>.ts'
 ```
 
 The config file is a POSITIONAL argument in StrykerJS. `-c` is `--concurrency` and `-f` is the
 deprecated `--files`; passing the config after either dies at validation with a misleading
-"concurrency must match pattern" error. Exact opposite of Stryker.NET, where `-f` IS the config.
+"concurrency must match pattern" error. This is the exact opposite of Stryker.NET upstream,
+where `-f` IS the config, so do not carry that habit across.
 
-Config: [frontend/stryker.config.mjs](../../frontend/stryker.config.mjs).
+Config: [stryker.config.mjs](../../stryker.config.mjs). Read its header before editing it. The
+one thing not to undo: it shells out to `ng test` through the **command runner** rather than
+using Stryker's vitest runner. The vitest runner drives Vitest with no Angular builder in the
+chain, so it gets no jsdom environment and no TestBed init, specs fail on setup, and Stryker
+reads those failures as mutants being killed. That scores high and means nothing.
 
-**Disk first.** Stryker.NET copies the project tree into StrykerOutput/ per run and the box has a
-small C: drive shared by several worktrees. Check free space before the run, keep
-`--mutate` narrow, run ONE Stryker at a time on this machine, and delete StrykerOutput/ when
-the report is read and the numbers are in the ledger.
+**`--mutate` decides how long you wait.** The command runner spawns a fresh `ng test` for every
+single mutant, so cold start dominates: budget roughly 11 seconds per mutant and work out the
+count before starting anything wide. Narrowing `STRYKER_SPECS` shaves a little; narrowing
+`--mutate` is the real lever. When you narrow the specs, the two globs must agree — widening
+`--mutate` without widening `STRYKER_SPECS` leaves survivors no test was ever run against,
+which looks exactly like a genuine gap in the tests.
+
+**Disk.** StrykerJS writes into `.stryker-tmp/` and `StrykerOutput/`, both gitignored here.
+Delete them when a run is done rather than letting them accumulate.
 
 **Budget roughly 11 seconds per mutant and plan the run accordingly.** The command runner
 spawns a fresh `ng test` for every single mutant, and that cold start dominates — one 27-line
@@ -107,7 +97,6 @@ chain, so it gets no jsdom environment, no `@gymbug/core/*` path aliases and no 
 and the resulting mass setup failures read to Stryker as mutants being killed. That scores
 high and means nothing.
 
-Legacy `gym-bug-workspace/` is frozen and has no mutation setup; do not add one.
 
 One service or one entry point at a time. HTML reports land under `StrykerOutput/`.
 
@@ -131,7 +120,20 @@ reason — do not silently count it as done, and do not chase it forever.
 
 ## Gate
 
-- **Mutation score ≥ 80% on touched files.**
+- <mutation_score_validity>
+**A NaN score, or a run with zero tested mutants, is not a gate result.** Stryker reports
+`Final mutation score of NaN is greater than or equal to break threshold` and exits 0 when every
+mutant it found was ignored or had no coverage. Nothing was tested, and the run passes anyway.
+Seen on this workspace's first run: `src/app/app.ts` had exactly one mutable construct, a string
+literal, and `excludedMutations: ['StringLiteral']` ignored it.
+
+Before signing off, open `reports/mutation/mutation.json` and check the mutant statuses. If the
+tested count is zero, say so and report `Gate: FAIL` with the reason, rather than quoting a score
+that governs nothing. Either widen `--mutate` to code that actually has behaviour, or the file
+you touched has none and belongs in the exclusions.
+</mutation_score_validity>
+
+**Mutation score ≥ 80% on touched files.**
 - **Zero survivors in new code** — anything the Coder added must be fully killed. The 80%
   allowance is for pre-existing code you happened to touch.
 - Every unit test and acceptance scenario still green.

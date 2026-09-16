@@ -20,7 +20,7 @@ One compact block: `#<id> <title>` — type, state, priority, assignee, then the
 ### 3. Investigate immediately
 Do NOT ask clarifying questions if the ticket is understandable — go straight to code. Ask only if genuinely blocked (contradictory info, no way to determine the feature area, or multiple materially different interpretations).
 
-Always search **both** `backend/` and `gym-bug-workspace/projects/web-app/` (per CLAUDE.md).
+Search `src/`, and the `features/` contracts for the behaviour the ticket describes.
 
 **Bug** — trace the repro flow (component → service → endpoint → handler → query), find the root cause. Check known patterns: date/timezone (`DateTime` on calendar dates is the prime suspect), week-start calculations, missing filters, null handling. For regressions, check `git log` on the affected files.
 

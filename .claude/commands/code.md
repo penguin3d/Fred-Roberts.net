@@ -42,7 +42,7 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 ## Owns
 
 - Implement the behaviour the `.feature` scenarios describe.
-- Bind the Reqnroll step definitions in `backend/GymBug.Acceptance.Tests/Steps/`.
+- Bind the cucumber-js step definitions in `features/steps/<slug>.steps.ts`.
 - Unit tests for the behaviour you write, to the coverage floor.
 - Keep production code testable — IO and environment behind small adapter seams.
 
@@ -70,57 +70,44 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 ## Gate — all of these, before you may hand off
 
 ```bash
-# 1. the contract
-dotnet test backend/GymBug.Acceptance.Tests/GymBug.Acceptance.Tests.csproj --filter "Category=<slug>"
+# 1. the contract — every scenario green now, not undefined
+npm run test:acceptance -- --tags @<slug> --format json:test-results/<slug>.json
 
-# 2. unit tests + coverage — ONLY the test classes that cover the files you touched
-dotnet test backend/<Service>.Tests/<Service>.Tests.csproj \
-  --filter "FullyQualifiedName~<TestClassA>|FullyQualifiedName~<TestClassB>" \
-  --collect:"XPlat Code Coverage;Format=opencover" --results-directory ./tmp/cov
+# 2. unit tests + coverage — the 90% floor
+npm run test:coverage:gate
 
-# 3. build clean — ONLY the projects your change actually affects
-node tools/gauntlet.mjs affected --slug <slug>   # writes backend/affected-<slug>.slnf
-dotnet build backend/affected-<slug>.slnf
+# 3. lint — ONLY the files you touched
+npx eslint <files you touched>
+
+# 4. build clean
+npx ng build
 ```
 
-**Never `dotnet build backend/GymBug.sln`.** That is 40 projects, every one running
-SonarAnalyzer, on a 4-core box. `gauntlet affected` walks the ProjectReference graph and
-builds only what your change can actually break — typically 3-13 projects. It names the test
-projects too — but you run only the test **classes** that cover your files, with `--filter`,
-never a whole project. The scope rule and its one allowed widening:
-[verification-gates.md](../../.claude/rules/verification-gates.md), `<scoped_gate>`.
+**There is no build scoping here, and that is deliberate.** The .NET original walked the
+ProjectReference graph and wrote a `.slnf` filter because a bare build was 40 projects on a
+four-core box. This workspace is one application: `ng build` builds it in about a second, so
+the `affected` command was removed rather than left half wired.
 
-For the inner loop only, add `-p:RunAnalyzers=false`. **The gate run must not use it** — Sonar
-`S####` findings are part of this gate.
-
-- Every acceptance scenario **green**.
+- Every acceptance scenario **green**. At stage 1 they were all `undefined`; if any is still
+  undefined, you have not bound it, and a scenario that is `failed` is not a scenario that is
+  done.
 - **≥90% line AND branch on every file you touched.** Target 95. Aim for 100 — every uncovered
   branch you leave must be named in the report with a reason.
-- `S####` Sonar warnings **in files you touched** are errors. Warnings elsewhere are not yours.
-**Frontend work — the same floor, different commands:**
-
-```bash
-cd frontend
-npx eslint <files you touched>           # the architecture boundaries are enforced here too
-npm run test:coverage:gate:project -- <app> --include '<spec glob for the files you touched>'
-npx ng build <app>                       # never a bare ng build
-```
-
-**Name the project AND the specs on every one of those.** Left bare they run the whole fleet —
-six apps plus the library — on a 4-core box shared with other sessions, and you will run them
-more than once. `@gymbug/core` is a valid name here, and so is any single app. `--include`
-resolves from the app's `src/` (a sibling core entry point starts with `../`); it is the
-spec files for the files you touched, never the whole app.
+- **ESLint clean on the files you touched.** Warnings elsewhere are not yours. ESLint plays the
+  role SonarAnalyzer's `S####` rules played upstream; there is no Sonar in this workspace.
+- `npx ng build` succeeds with no new warnings.
 
 `test:coverage:gate` carries the 90% floor in
-[frontend/vitest.gate.config.ts](../../frontend/vitest.gate.config.ts), so the runner enforces
-it and prints the shortfall. It does **not** come from `--coverage-thresholds` flags; those are
-not accepted by the builder and the gate silently errored out for months before this was
-fixed. The floor is per file you touched, which no global threshold can express, so read the
-report and quote the per-file numbers regardless. Legacy `gym-bug-workspace/` is frozen
-(bugfixes only) and has no coverage gate — if you had to touch it, say so in the report and
-quote the numbers by hand.
-- The Stop hooks (jscpd duplication, fallow dead code) must pass. Do not re-baseline them.
+[vitest.gate.config.ts](../../vitest.gate.config.ts), so the runner enforces it and prints the
+shortfall. It does **not** come from `--coverage-thresholds` flags; those are rejected outright
+by the `@angular/build:unit-test` builder, and upstream the gate silently errored out for
+months before that was found. The floor is per file you touched, which no global threshold can
+express, so read the report and quote the per-file numbers regardless.
+
+**The Stop hooks are not installed here.** Upstream, jscpd duplication and a dead-code scan
+fail the turn automatically. This workspace took the pipeline without the hooks layer, so
+duplication and dead code are `/clean`'s job at stage 3 and nothing enforces them at stage 2.
+Do not read their absence as permission.
 
 If coverage is short, the uncovered lines are your remaining test list. Write those tests. Do
 not rationalise the gap and do not report done without the numbers.

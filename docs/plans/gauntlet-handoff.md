@@ -18,8 +18,8 @@ never skip forward, never hand a known-failing gate to the next stage.
 | Stage | Done when |
 |---|---|
 | **/spec** | `.feature` parses; every scenario runs and is **red** on a missing binding; every scenario named as a sentence a human can tick off; interrogation checklist cleared |
-| **/code** | every acceptance scenario green; **≥90% line AND branch on every touched file** (target 95, goal 100); build clean with Sonar `S####` in touched files treated as errors; jscpd + fallow + eslint hooks pass; `.feature` byte-for-byte unchanged |
-| **/clean** | CRAP within the recorded baseline; no **new** method above CC 10; coverage did not drop; duplication did not increase; every test still green and behaviour identical |
+| **/code** | every acceptance scenario green; **≥90% line AND branch on every touched file** (target 95, goal 100); `npx ng build` clean; `npx eslint` clean on touched files; `.feature` byte-for-byte unchanged |
+| **/clean** | CRAP within the recorded baseline; no **new** function above CC 10; coverage did not drop; duplication did not increase; every test still green and behaviour identical |
 | **/harden** | mutation score **≥80% on touched files**; **zero survivors in new code**; production code byte-for-byte identical to what /clean produced |
 | **/qa** | a **committed spec file** covers every `Scenario` in the `.feature`, one assertion per acceptance criterion; green via `npx playwright test` against a running system; screenshot per criterion, taken by the spec |
 

@@ -1,7 +1,6 @@
 ---
 paths:
-  - "frontend/**/*.{ts,html,scss}"
-  - "gym-bug-workspace/**/*.{ts,html,scss}"
+  - "src/**/*.{ts,html,scss}"
 ---
 
 # Angular best practices — official angular.dev set, pinned to Angular 21
@@ -23,7 +22,7 @@ Signal Forms become stable.
 - `inject()` — never constructor injection.
 - Host bindings via the `host: {}` object in the decorator — never `@HostBinding` / `@HostListener`.
 - Small, single-responsibility components. **`frontend/`: prefer inline templates for small
-  components** (2025 style guide). Legacy `gym-bug-workspace/` keeps its established separate
+  components** (2025 style guide). The established separate
   `.ts`/`.html`/`.scss` files — don't churn it.
 - External template/style paths are relative to the component TS file.
 - `NgOptimizedImage` for all static images (does not work for inline base64).

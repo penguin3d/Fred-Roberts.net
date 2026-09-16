@@ -1,12 +1,11 @@
 ---
 paths:
-  - "frontend/**/*.{ts,html,scss}"
+  - "src/**/*.{ts,html,scss}"
 ---
 
 # Responsive UI — every human-facing surface works on a phone
 
 Decided 2026-08-23. Applies to `frontend/` (the new fleet). The legacy
-`gym-bug-workspace` is frozen and exempt — bugfixes only, no responsive retrofit.
 
 ## Which apps
 
@@ -53,7 +52,7 @@ add it to `_breakpoints.scss` with a comment saying why.
   container queries. A component that reads a width to decide how to lay itself out is a bug.
 - **One nav model, many renderers.** The sidebar, the bottom bar and the More sheet all
   render the same nav tree. Two hand-maintained item lists is how the legacy admin
-  drifted (`custom-sidenav` vs `admin-bottom-nav` — see [that mistake](../../gym-bug-workspace/projects/web-app/src/app/admin/components/admin-bottom-nav/admin-bottom-nav.component.ts)).
+  drifted (`custom-sidenav` vs `admin-bottom-nav`).
 - **Tables become cards below `tablet`.** A horizontally scrolled 9-column table is not
   a mobile design. Same data, same store, different template.
 - **Test all three stops.** A change to any shared layout is verified at 360, 768 and 1280.

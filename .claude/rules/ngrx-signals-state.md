@@ -1,6 +1,6 @@
 ---
 paths:
-  - "frontend/**/*.ts"
+  - "src/**/*.ts"
 ---
 
 # All data access goes through an NgRx SignalStore

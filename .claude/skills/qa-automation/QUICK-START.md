@@ -193,7 +193,6 @@ Story **CANNOT pass QA** unless:
 - ✅ Run existing test suites
 - ✅ Create detailed bug reports (YAML format)
 - ✅ Generate test reports with evidence
-- ✅ Update Global Tracker with QA status
 - ✅ Take screenshots and videos
 - ✅ Scan for testable stories
 - ✅ Show testing progress dashboard
@@ -222,7 +221,6 @@ tests/
 ### Where Reports Go
 
 ```
-docs/requirements/{feature-path}/
 ├── test-reports/
 │   └── test-report_{story_id}_{date}.yaml
 ├── bugs/
@@ -234,8 +232,6 @@ docs/requirements/{feature-path}/
 
 ### Trackers Updated
 
-- `GLOBAL-EXECUTION-TRACKER.yaml` - Updated with `qa_status`
-- `{feature}/execution-tracker.yaml` - Updated with test results
 
 ---
 
@@ -245,7 +241,6 @@ docs/requirements/{feature-path}/
 
 ```
 User: "What can I test?"
-Agent: [Scans Global Tracker, shows ready stories]
 User: "Test story 2"
 Agent: [Loads US-WEEKLY-002, begins testing]
 ```
@@ -287,7 +282,6 @@ Agent: [Executes full test suite, reports results]
 **Cause:** Story ID doesn't exist or is misspelled
 
 **Fix:** 
-1. Check Global Tracker for correct ID
 2. Use "Find Testable" option to browse
 
 ### "Story not ready for testing"
@@ -296,7 +290,6 @@ Agent: [Executes full test suite, reports results]
 
 **Fix:**
 1. Wait for developer to finish
-2. Check `execution-tracker.yaml` for status
 
 ### "Can't access environment"
 

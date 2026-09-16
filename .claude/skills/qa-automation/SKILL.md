@@ -846,8 +846,6 @@ bug_report:
        <button [disabled]="!form.valid">Save</button>
        
   related_links:
-    story: "docs/requirements/system-component-config/stories/story_US-SCC-001.yaml"
-    test_report: "docs/requirements/system-component-config/test-reports/test-report_US-SCC-001.yaml"
     
   assignment:
     assigned_to: "Developer Agent"
@@ -909,7 +907,6 @@ When reporting bugs to users or developers:
 ║  💡 SUGGESTED FIX                                                 ║
 ║  Add FormGroup validation and display mat-error in template      ║
 ║                                                                  ║
-║  Full report: docs/requirements/system-component-config/bugs/    ║
 ║               bug_BUG-001_validation-error.yaml                  ║
 ║                                                                  ║
 ╚══════════════════════════════════════════════════════════════════╝

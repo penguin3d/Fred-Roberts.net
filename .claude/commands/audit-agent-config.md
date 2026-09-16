@@ -104,7 +104,7 @@ deterministic tool would back it. Specifically check whether the repo has anythi
 - **CRAP score** (cyclomatic complexity² × (1−coverage)³ + complexity; threshold 30) — we already
   produce coverage via `--collect:"XPlat Code Coverage"` and Vitest `--coverage`. What's the
   shortest path to a per-method CRAP ranking on both stacks?
-- **Mutation testing** — Stryker.NET for `backend/`, StrykerJS for `frontend/`. Present? Wired?
+- **Mutation testing** — StrykerJS via the command runner. Present? Wired?
 - **Architecture / dependency enforcement** — `frontend/eslint.config.js` enforces boundaries for
   the Angular fleet; is there any equivalent for `backend/` Clean Architecture layering, and is
   there any tool that *renders* the dependency graph so drift is visible?
