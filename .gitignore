@@ -47,3 +47,6 @@ Thumbs.db
 /reports/
 /StrykerOutput/
 /.stryker-tmp/
+
+# A captured owner session is a live credential for the portfolio.
+.auth/

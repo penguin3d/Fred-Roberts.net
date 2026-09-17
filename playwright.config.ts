@@ -17,18 +17,43 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'reports/playwright' }]],
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL: process.env['E2E_BASE_URL'] ?? 'http://localhost:4200',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
-    { name: 'phone', use: { ...devices['Pixel 7'] } },
+    // Signed-out scenarios, at both viewports the responsive rule asks about.
+    {
+      name: 'desktop',
+      use: { ...devices['Desktop Chrome'] },
+      testIgnore: /(owner\.spec|auth\.setup)\.ts/,
+    },
+    {
+      name: 'phone',
+      use: { ...devices['Pixel 7'] },
+      testIgnore: /(owner\.spec|auth\.setup)\.ts/,
+    },
+    // Run headed, by hand, once: Google will not be automated and should not be.
+    { name: 'setup', use: { ...devices['Desktop Chrome'] }, testMatch: /auth\.setup\.ts/ },
+    // The owner's scenarios, from the session that setup captured.
+    {
+      name: 'owner',
+      use: { ...devices['Desktop Chrome'], storageState: '.auth/owner.json' },
+      testMatch: /owner\.spec\.ts/,
+    },
   ],
-  webServer: {
-    command: 'npm start',
-    url: 'http://localhost:4200',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  // No webServer when a target is named: `ng serve` cannot host this slug at all. The
+  // boundary is express middleware in src/server.ts, which ng serve never loads, so a local
+  // run of the boundary specs would pass while exercising nothing. Point E2E_BASE_URL at a
+  // deployed build instead.
+  ...(process.env['E2E_BASE_URL']
+    ? {}
+    : {
+        webServer: {
+          command: 'npm start',
+          url: 'http://localhost:4200',
+          reuseExistingServer: !process.env.CI,
+          timeout: 120_000,
+        },
+      }),
 });
