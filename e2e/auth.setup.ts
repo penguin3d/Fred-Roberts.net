@@ -1,45 +1,71 @@
 /**
- * One-time manual sign-in, captured for the owner specs.
+ * Builds the owner's session for the owner specs, without Playwright ever touching Google.
  *
- * Google actively blocks automated sign-in, and it should: a spec that could log in as Fred
- * without Fred would mean the boundary was forgeable. So this runs HEADED and waits for a
- * human to complete the Google flow, then saves the resulting session.
+ * Google refuses OAuth in any browser it detects as automated — "This browser or app may not
+ * be secure" — and it is right to. That means the sign-in itself cannot be scripted, and the
+ * one scenario it proves ("The site owner signs in with the allowed account and lands in the
+ * portfolio") is verified by hand, with a screenshot, not by this file.
  *
- * The saved file is a live credential for the portfolio. It is gitignored, and because the
- * session has no expiry of our own it stays valid until someone signs out on it.
+ * What CAN be automated is everything after: the device's session is our own signed cookie,
+ * and the boundary re-verifies its HMAC on every single request. Replaying it is exactly what
+ * a returning browser does, so nothing is being bypassed.
  *
+ * Get the value once, from a browser where you are signed in:
+ *   DevTools -> Application -> Cookies -> https://fredroberts.net -> __Host-frn_session
+ *
+ * Then:
  *   E2E_BASE_URL=https://fredroberts.net \
  *   E2E_ENTRANCE_PATH=/your-entrance \
- *   npx playwright test auth.setup.ts --headed --project=setup
- *
- * This also IS the proof of one scenario: "The site owner signs in with the allowed account
- * and lands in the portfolio".
+ *   E2E_OWNER_SESSION=<the cookie value> \
+ *   npx playwright test auth.setup.ts --project=setup
  */
 import { expect, test as setup } from '@playwright/test';
 
-import { ENTRANCE, OWNER_STATE, SHOTS } from './boundary';
+import { ENTRANCE, OWNER_STATE, PORTFOLIO, SESSION_COOKIE, SHOTS } from './boundary';
 
-setup('The site owner signs in with the allowed account and lands in the portfolio', async ({
-  page,
-}) => {
-  setup.setTimeout(5 * 60 * 1000);
+setup('the owner session is accepted by the live boundary', async ({ browser, baseURL }) => {
+  const value = process.env['E2E_OWNER_SESSION'];
+  expect(
+    value,
+    'E2E_OWNER_SESSION is not set. Copy __Host-frn_session from a browser where you are ' +
+      'signed in (DevTools -> Application -> Cookies) and export it — see the comment at the ' +
+      'top of this file.',
+  ).toBeTruthy();
 
-  await page.goto(ENTRANCE);
-  await expect(page.locator('#g_id_onload')).toBeAttached();
+  const host = new URL(baseURL ?? 'https://fredroberts.net').hostname;
+  const context = await browser.newContext();
+  await context.addCookies([
+    {
+      name: SESSION_COOKIE,
+      value: value as string,
+      domain: host,
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+    },
+  ]);
 
-  console.log('\n  Sign in with the allowed Google account in the browser window.');
-  console.log('  Waiting up to 5 minutes…\n');
-
-  // The portfolio is the only page that names its owner, so this is the completion signal.
-  await expect(page.getByRole('heading', { name: 'Fred Roberts' })).toBeVisible({
-    timeout: 5 * 60 * 1000,
-  });
-  await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
-  await expect(page.locator('#g_id_onload')).toHaveCount(0);
-
-  // "it shows they are signed in as the owner" — the label Google returned for the account.
+  // Prove the session is live before saving it, so a stale paste fails here with a clear
+  // message rather than as six confusing failures in the owner spec.
+  const page = await context.newPage();
+  await page.goto(PORTFOLIO);
+  // Sign out is portfolio-only; the heading is not, so it is no use as the signal here.
+  await expect(
+    page.getByRole('button', { name: 'Sign out' }),
+    'the boundary did not accept that session — is it current, and copied whole? ' +
+      'A wrong or expired value silently yields the public site, by design.',
+  ).toBeVisible();
   await expect(page.getByText(/you are .+@.+/i)).toBeVisible();
+  await page.screenshot({ path: `${SHOTS}/owner-session-accepted.png`, fullPage: true });
 
-  await page.screenshot({ path: `${SHOTS}/owner-signs-in.png`, fullPage: true });
-  await page.context().storageState({ path: OWNER_STATE });
+  // And that it is the session doing the work: the same request without it is the public site.
+  const anonymous = await browser.newContext();
+  const anonymousPage = await anonymous.newPage();
+  await anonymousPage.goto(ENTRANCE);
+  await expect(anonymousPage.locator('#g_id_onload')).toBeAttached();
+  await anonymous.close();
+
+  await context.storageState({ path: OWNER_STATE });
+  await context.close();
 });

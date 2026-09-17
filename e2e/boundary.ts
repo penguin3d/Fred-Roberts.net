@@ -42,7 +42,12 @@ function required(name: string): string {
  * "you were refused" string to look for. The placeholder's own text is the positive signal.
  */
 export async function expectPublicSite(page: Page, shot: string): Promise<void> {
+  // Positively the placeholder, not merely "no portfolio": both pages carry an
+  // <h1>Fred Roberts</h1>, so the heading discriminates nothing and is never asserted on.
   await expect(page.locator('app-root')).toBeAttached();
+  await expect(page.getByText('Site under construction.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign out' })).toHaveCount(0);
+  await expect(page.getByText(/you are .+@.+/i)).toHaveCount(0);
   await expect(page.getByRole('button', { name: /sign in/i })).toHaveCount(0);
   await expect(page.locator('#g_id_onload')).toHaveCount(0);
   await expect(page.locator('iframe[src*="accounts.google.com"]')).toHaveCount(0);
@@ -62,8 +67,13 @@ export async function expectEntrance(page: Page, shot: string): Promise<void> {
 
 /** The portfolio, which is the only page that names its owner. */
 export async function expectPortfolio(page: Page, shot: string): Promise<void> {
-  await expect(page.getByRole('heading', { name: 'Fred Roberts' })).toBeVisible();
+  // The discriminators, and the reason the heading is not one of them: the public
+  // placeholder renders the same <h1>Fred Roberts</h1>, so asserting on it would let an
+  // owner test pass while looking at the public site. Only these three are portfolio-only.
   await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();
+  await expect(page.getByText(/you are .+@.+/i)).toBeVisible();
+  await expect(page.locator('app-root')).toHaveCount(0);
+  await expect(page.getByText('Site under construction.')).toHaveCount(0);
   await expect(page.locator('#g_id_onload')).toHaveCount(0);
   await page.screenshot({ path: `${SHOTS}/${shot}.png`, fullPage: true });
 }
