@@ -29,6 +29,39 @@ test.describe('Only the allowed account gets in', () => {
   });
 });
 
+test.describe('Anyone who is not Fred is shown the public site', () => {
+  /**
+   * Lives here rather than in the signed-out spec because its precondition needs a real
+   * owner session: the point is that Fred being in on his device opens nothing anywhere else.
+   */
+  test('Fred being signed in on one device opens nothing to anyone else', async ({
+    browser,
+  }, testInfo) => {
+    const fred = await browser.newContext({ storageState: testInfo.project.use.storageState });
+    const onFredsLaptop = await fred.newPage();
+    await onFredsLaptop.goto(PORTFOLIO);
+    await expectPortfolio(onFredsLaptop, 'one-device-fred-is-in');
+
+    /**
+     * Sam: a different browser entirely, carrying nothing.
+     *
+     * The empty storageState is load-bearing and must stay explicit. browser.newContext()
+     * inherits the project's `use` options, so a bare newContext() here silently arrives
+     * carrying Fred's session — and this test, of all of them, would then assert that the
+     * boundary leaks while reporting green.
+     */
+    const sam = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+    const onSamsBrowser = await sam.newPage();
+    await onSamsBrowser.goto(PORTFOLIO);
+
+    await expectPublicSite(onSamsBrowser, 'one-device-sam-gets-nothing');
+    expect(await sam.cookies()).toEqual([]);
+
+    await fred.close();
+    await sam.close();
+  });
+});
+
 test.describe('Signed-in state lasts until sign-out, on that device alone', () => {
   /**
    * The contract names 2026-09-17, 2026-09-23 and 2026-10-16 — one day, one week and one
