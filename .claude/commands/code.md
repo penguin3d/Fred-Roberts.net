@@ -133,3 +133,16 @@ End with the handoff block from the protocol doc, `Gate: PASS`, and the copy-blo
 
 In `Carried forward`, name anything the Cleaner should know: seams you left rough, a method you
 know is too long, a duplication you introduced deliberately to keep the slice small.
+
+**And every third-party default you inherited that a user will see.** Where the contract is
+silent and a library, widget or SDK supplies the behaviour — which account a sign-in offers, how
+a payment sheet opens, what a date picker does on a blank value — you did not avoid making a
+decision, you made one silently and shipped it. Name it in `Carried forward` and say it was the
+default, not a choice. It is the one class of thing no later gate can catch: /clean does not
+change behaviour, /harden mutates your code and not a vendor's, and /qa tests the contract,
+which by definition never mentioned it.
+
+`sign-in-boundary` shipped exactly this way. The contract said a wrong account is refused
+silently; Google Identity Services defaults to auto-selecting whichever session the browser
+already has; nobody chose that, nobody reported it, and Fred got a door that looked broken. One
+line in the handoff would have turned it into a question before it was production behaviour.

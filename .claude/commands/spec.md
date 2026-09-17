@@ -119,8 +119,15 @@ your best guess as the first option so the user can just confirm.
 | 7 | **Nothing there** — no plan, expired plan, zero results. What then? | empty states get skipped and then ship broken |
 | 8 | Is the action legal on a **past** date? On a **cancelled** record? | |
 | 9 | Done **twice** — second attempt succeeds, is refused, or is a no-op? | |
+| 10 | For every actor who **succeeds**: how do they identify themselves, or choose among options — and is that choice ever made **for** them? | items 1-9 all interrogate refusals, boundaries and edges, so a happy path's interaction gets assumed trivial and silently defaulted. If a third party's widget makes the choice (a Google account chooser, a payment sheet, an OS file picker), name the behaviour you want; its default is a decision you did not make |
 
 If the user answers vaguely, ask again with concrete options. Vague in, vague out.
+
+**Item 10 exists because of a real miss.** `sign-in-boundary` shipped through all five stages
+with "which Google account?" unspecified: the contract said only that a wrong account is
+refused silently, so the Coder inherited Google Identity Services' default of auto-selecting
+whichever session the browser already had. Fred got a silent refusal with no picker and a door
+that looked broken. Items 1-9 could not have caught it — none of them asks about a success.
 
 ## Phase 3 — write the feature file
 
