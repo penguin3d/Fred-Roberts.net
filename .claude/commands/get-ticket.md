@@ -10,7 +10,7 @@ Work item ID: $ARGUMENTS
 ## Workflow
 
 ### 1. Fetch
-- `mcp__ado__wit_get_work_item` — get the work item (note type: Bug or User Story).
+- `mcp__ado__wit_work_item` — get the work item (note type: Bug or User Story).
 - `mcp__ado__wit_list_work_item_comments` — read ALL comments; they often contain repro details, environment info, and prior investigation notes.
 - Only if the description seems incomplete: `mcp__ado__wit_list_work_item_revisions`.
 
@@ -22,7 +22,7 @@ Do NOT ask clarifying questions if the ticket is understandable — go straight 
 
 Search `src/`, and the `features/` contracts for the behaviour the ticket describes.
 
-**Bug** — trace the repro flow (component → service → endpoint → handler → query), find the root cause. Check known patterns: date/timezone (`DateTime` on calendar dates is the prime suspect), week-start calculations, missing filters, null handling. For regressions, check `git log` on the affected files.
+**Bug** — trace the repro flow through `src/`, find the root cause. Check date/timezone handling, missing filters and null handling. For regressions, check `git log` on the affected files.
 
 **User Story** — map existing code in both layers, identify reuse opportunities and affected entities, note the patterns the implementation must follow.
 
@@ -35,4 +35,4 @@ Present concisely:
 Then ask exactly one question: **"Proceed with the fix/implementation?"**
 
 ### 5. On approval
-Before writing code: move the ticket to "In Progress" (`mcp__ado__wit_update_work_item`) and add a comment (`mcp__ado__wit_add_work_item_comment`) summarizing the root cause and planned approach. Then implement.
+Before writing code: move the ticket to "In Progress" (`mcp__ado__wit_work_item_write`) and add a comment (`mcp__ado__wit_work_item_comment_write`) summarizing the root cause and planned approach. Then implement.

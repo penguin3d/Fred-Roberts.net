@@ -13,8 +13,8 @@ is gone. Do not read the absence of a red light as permission.
 - Found yourself copy-pasting → **extract to shared code** instead. Never silence a check.
 - Before building a "similar" component, dialog or editor: find the existing one and extend or
   parameterize it.
-- ESLint structural rules (`max-lines-per-function: 50`, `max-lines: 400`, `complexity: 15`)
-  are warnings — treat them as errors for NEW code.
+- `eslint.config.js` sets no size or complexity limits; the /clean gate fails any new function
+  above CC 10, so keep new code under it.
 - Duplication and dead code are `/clean`'s explicit remit at stage 3. If you notice either at
   stage 2, say so in the handoff rather than fixing it: stage 2 does not own shape.
 

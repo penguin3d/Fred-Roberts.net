@@ -51,7 +51,7 @@ Rules:
 2. Identify the **Feature** being tested (usually the feature just worked on in this session). The checklist story becomes its **child**.
 3. Create the work item:
    - `mcp__ado__wit_work_item_write` (action `create`) with `project: "Fred Personal Work"`, `workItemType: "User Story"`.
-   - Fields: `System.Title`; `System.Description` with `format: "Html"` and the checklist HTML; `System.AreaPath: "Fred Personal Work"`; `System.IterationPath: "Fred Personal Work"`.
+   - Fields: `System.Title`; `System.Description` with `format: "Html"` and the checklist HTML; `System.AreaPath` copied from the parent Feature (never the bare project root); `System.IterationPath: "Fred Personal Work"`.
    - New items start in state **New** — do NOT try to set state on create.
 4. Parent it under the Feature with `mcp__ado__wit_work_item_link_write` (action `link`): `{ id: <checklist id>, linkToId: <feature id>, type: "parent" }`.
 5. Fred Personal Work User Stories have stock Agile states (**New / Active / Resolved / Closed**) — there is **no "Ready For Testing" state**. Leave the story in **New**; readiness is signaled by the story existing under the Feature. Assign it to the tester if the user names one.

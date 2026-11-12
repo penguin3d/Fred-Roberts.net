@@ -23,7 +23,7 @@ our pin may have APIs latest already deprecated.
 
 If the bug, missing API, or limitation you are about to code around is fixed in a newer,
 potentially compatible version (patch/minor bump, or a major with a clear migration path),
-STOP and present both options explicitly — same A/B pattern as the DateOnly rule:
+stop and present both options explicitly:
 
 - **A:** workaround on the pinned version (state the cost being taken on)
 - **B:** upgrade + the clean solution (state the compatibility risk checked)

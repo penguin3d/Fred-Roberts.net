@@ -86,18 +86,6 @@ which looks exactly like a genuine gap in the tests.
 **Disk.** StrykerJS writes into `.stryker-tmp/` and `StrykerOutput/`, both gitignored here.
 Delete them when a run is done rather than letting them accumulate.
 
-**Budget roughly 11 seconds per mutant and plan the run accordingly.** The command runner
-spawns a fresh `ng test` for every single mutant, and that cold start dominates — one 27-line
-file with 18 mutants takes about three and a half minutes whether the suite behind it is 9
-tests or 535. Narrowing `STRYKER_CORE_SPECS` shaves a little; narrowing `--mutate` is what
-actually decides how long you sit there. Count the mutants before starting anything wide.
-
-Do not use the `vitest` test runner here. It drives Vitest with no Angular builder in the
-chain, so it gets no jsdom environment, no `@gymbug/core/*` path aliases and no TestBed init —
-and the resulting mass setup failures read to Stryker as mutants being killed. That scores
-high and means nothing.
-
-
 One service or one entry point at a time. HTML reports land under `StrykerOutput/`.
 
 ## Reading the results
@@ -111,8 +99,7 @@ One service or one entry point at a time. HTML reports land under `StrykerOutput
 | **Compile error** | discarded, not scored | nothing |
 
 Pay particular attention to survivors on **comparison operators**. Stryker flips `<`↔`<=` and
-`>`↔`>=`, and off-by-one date boundaries are the single worst failure mode in this codebase —
-premature expirations, off-by-one renewals. A survivor there is very likely a real latent bug.
+`>`↔`>=`, and a survivor on a date or limit boundary is very likely a real latent bug.
 
 **Equivalent mutants exist.** Some mutations produce semantically identical code and can never be
 killed. When you conclude a survivor is equivalent, say so explicitly in the report with the

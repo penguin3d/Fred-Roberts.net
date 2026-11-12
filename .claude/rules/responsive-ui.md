@@ -7,18 +7,7 @@ paths:
 
 Decided 2026-08-23. Applies to every page in `src/`.
 
-## Which apps
-
-| App | Target | Rule |
-|---|---|---|
-| `admin` | phone → desktop | **Responsive. Non-negotiable.** Coaches work the floor on a phone |
-| `site` | phone → desktop | **Responsive.** Marketing is mobile-majority traffic; the hub is used on phones |
-| `member` | phone, up to desktop | **Responsive.** Ships as a PWA, so it is opened in desktop browsers |
-| `kiosk` | mounted tablet | **Fixed form factor** — declare the target viewport, do not go fluid |
-| `screens` | TV at 10ft | **Fixed form factor** — leanback, no touch, landscape only |
-
-The carve-out is for *known fixed hardware*, not for "this page is complicated".
-If a human might open it on their own phone, it is responsive.
+This workspace is one application, and every page in it is responsive.
 
 ## The floor
 

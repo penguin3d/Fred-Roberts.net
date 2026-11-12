@@ -56,18 +56,14 @@ Signal Forms become stable.
 
 ## Forms
 
-- Reactive forms over template-driven where a form model is needed. Most fleet inputs are
-  signal-backed `gb-*` controls; don't introduce template-driven forms.
+- Reactive forms over template-driven where a form model is needed.
 
 ## Accessibility
 
 - Must pass AXE checks and WCAG AA minimums: focus management, color contrast, ARIA attributes.
-- Native interactive elements (`<button>`, `<a>`, `<input>`) — never `<div role="button">`
-  (see `ionic-shell-custom-ui.md`).
+- Native interactive elements (`<button>`, `<a>`, `<input>`) — never `<div role="button">`.
 
 ## Related path-scoped rules
 
-`ngrx-signals-state.md` (state) · `gb-components-first.md` (legacy components) ·
-`gb-icons.md` (icons) · `ionic-shell-custom-ui.md` (Ionic apps) ·
-date/timezone rules in root `CLAUDE.md` (DateOnly, `parseLocalDate`).
+`ngrx-signals-state.md` (state) · `responsive-ui.md` (layout).
 

@@ -266,8 +266,7 @@ and it goes **around** the item, never into its framing:
 - **`areaPath` is the parent's area path, never the bare project root.** The root is the one
   place nothing filters on: an item left there shows on no domain view and cannot reach the
   pipeline board. Read the parent's `System.AreaPath` and copy it (`Fred Personal Work\Personal`,
-  `\GSC`, `\Tooling`, `\Hardware`). Five stories were filed at the root on 2026-09-13 and had to
-  be re-homed by hand.
+  `\GSC`, `\Tooling`, `\Hardware`).
 - `iterationPath`: the current dated sprint for a story that is next; the project root otherwise.
 - New items start in **New** — do not set state on create.
 - `add_child` already parented it. If you had to use `create` instead, link it with

@@ -89,7 +89,7 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 - **No new function above CC 10.** Existing ones must not get worse.
 - **Coverage did not drop** on any touched file, and is still ≥90% line and branch.
 - Every unit test and every acceptance scenario still **green**.
-- `npx eslint src` clean on the files you touched.
+- `npx eslint <files you touched>` clean.
 - `npx ng build` clean.
 
 Duplication is **not** gated here. Upstream a jscpd Stop hook failed the turn on new clones;

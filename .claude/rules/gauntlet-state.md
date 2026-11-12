@@ -17,7 +17,7 @@ disappears from the product view when it enters the pipeline.
 
 | Board | Team | Role | Columns |
 |---|---|---|---|
-| **Product** | `Fred Personal Work Team` | everything wanted, ever. The standing backlog — **~78 open items that still need reviewing, sizing and triaging** | Backlog → Spec / Design → Ready for Dev → In Progress → Code Review → Testing → Ready for Release → Done |
+| **Product** | `Fred Personal Work Team` | everything wanted, ever. The standing backlog, still to be reviewed, sized and triaged | Backlog → Spec / Design → Ready for Dev → In Progress → Code Review → Testing → Ready for Release → Done |
 | **Pipeline** | `Development` | only what is being built right now, one column per gauntlet stage | Backlog → Spec → Code → Clean → Harden → QA → Done |
 
 When Fred asks what is on the board, **report both**: what the pipeline is working (from
@@ -168,7 +168,7 @@ answer those normally. This rule is about the pipeline's state, not about being 
 Report in prose, leading with the decision — one slug, one stage, why that one. Fred should
 never have to run the tool himself or read its raw output; that is why it exists.
 
-Parse `--json`, never the table. `green` is read from the newest acceptance `.trx`: when it is
+Parse `--json`, never the table. `green` is read from the slug's cucumber-js report, `test-results/<slug>.json`: when it is
 null say **"no run on record"**, never "0 passing", and never freshen it by running the suite
 unless asked. `scen` is counted live from the `.feature` file.
 

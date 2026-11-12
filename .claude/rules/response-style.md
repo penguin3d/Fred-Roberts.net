@@ -24,7 +24,7 @@ something is, give the location and stop — the why gets asked for if it is wan
 
 <post_output_rule>
 1. One or two plain sentences: what is done, and what is left if the work spans phases.
-2. Then **at most four bullets**, only where they apply:
+2. Then a few bullets, only where they apply:
    - how to run it, if not obvious
    - anything asked for that you did **not** do, and why
    - assumptions that could be wrong

@@ -1,8 +1,8 @@
 # Legacy Retirement Register — ask, then record
 
 The register lives at [docs/legacy-retirement-register.md](../../docs/legacy-retirement-register.md).
-It tracks legacy endpoints/files/functions kept alive only for retiring surfaces (chiefly the
-a retiring surface), each paired with its replacement and removal condition, so
+It tracks legacy endpoints/files/functions kept alive only for retiring surfaces, each paired
+with its replacement and removal condition, so
 cleanup happens deliberately, entry by entry — never all at once.
 
 ## When to act
@@ -17,7 +17,7 @@ cleanup happens deliberately, entry by entry — never all at once.
    part of that work — the entry names BOTH sides (legacy item + replacement) and flips
    `Status` to `replacement-built`.
 3. **A retirement actually happens:** delete the entry's cleanup targets, verify no callers
-   remain (grep both workspaces + backend), then move the entry to the register's "Retired"
+   remain (grep `src/`, `features/` and `e2e/`), then move the entry to the register's "Retired"
    section with the date/commit.
 
 ## Rules

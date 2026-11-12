@@ -2,6 +2,36 @@
 
 Fred's personal site. Angular 21, one application, source in `src/`. Created 2026-09-15.
 
+## Stack and commands
+
+Angular 21 with server-side rendering: an Express server (`src/server.ts`) wraps the Angular
+SSR engine and enforces a Google sign-in boundary (`src/boundary/`) before any page is
+rendered. With none of the four boundary settings configured it fails closed, so nobody gets
+in, Fred included; `apphosting.yaml` lists the four. Tests are Vitest through `ng test`,
+contracts are cucumber-js, E2E is Playwright, mutation testing is Stryker, lint is ESLint.
+Node `^22.22.3 || ^24.15.0 || >=26.0.0` (`engines`), npm 11.5.2.
+
+    npm ci                               # install from the lockfile (see the npm section below)
+    npm start                            # ng serve on http://localhost:4200
+    npm run build                        # ng build, output in dist/fredroberts-net/
+    npm test                             # unit tests (ng test)
+    npm run lint                         # eslint src; while working, lint only the files you touched
+    npm run test:coverage:gate           # unit tests with the coverage floor
+    npm run test:acceptance              # cucumber-js over features/
+    npm run crap:check                   # node tools/crap.mjs frontend
+    npm run e2e                          # Playwright; starts ng serve itself
+
+`ng serve` never loads `src/server.ts`, so the sign-in boundary specs cannot run against it:
+point `E2E_BASE_URL` at a deployed build for those. `.auth/owner.json` is a captured owner
+session, a live credential, and is gitignored.
+
+## Deploy
+
+Pushes to `main` deploy, through Firebase App Hosting (backend `fred-roberts-bak`, project
+`fred-roberts-1965`, config in `firebase.json` and `apphosting.yaml`). Nothing here checks a
+build before it ships, so run `npx ng build` first, and treat a push to `main` as a release.
+The build runs `npm ci`; see the npm section below.
+
 Work runs through the **gauntlet**: a five-stage pipeline installed from
 `~/Claude-Projects/gauntlet`, itself a snapshot of Bojan's pipeline in `gsc-web-3.0`.
 [docs/agent-operating-model.md](docs/agent-operating-model.md) is the reference;
@@ -28,13 +58,11 @@ state committed on a branch is invisible from every other branch.
 | `/spec` | `npm run test:acceptance -- --tags @<slug> --format json:test-results/<slug>.json` — every scenario **undefined**, nothing green |
 | `/code` | every scenario green · ≥90% line and branch on touched files · `npx eslint` clean · `npx ng build` clean |
 | `/clean` | `node tools/crap.mjs frontend` within baseline · no new function over CC 10 · coverage did not drop |
-
-There is **no `crap-baseline.json` yet** — the placeholder has no functions to score, and a
-baseline recorded off an empty app would ratchet real code against a meaningless number. The
-first `/clean` with actual logic records it: `node tools/crap.mjs frontend --baseline`. After
-that it only ever goes down. Never re-record to turn a red gate green.
 | `/harden` | `npx stryker run --mutate '<touched files>'` ≥80%, zero survivors in new code |
 | `/qa` | `npm run e2e` green, one spec per Scenario, screenshot per criterion |
+
+The CRAP baseline is `crap-baseline.json`, recorded with `node tools/crap.mjs frontend --baseline`.
+It only ever goes down. Never re-record to turn a red gate green.
 
 Two artefacts are **frozen**: the `.feature` after `/spec` (`git diff --stat -- '*.feature'`
 must be empty at stage 2), and production code after `/clean` (`/harden` touches tests only).

@@ -12,11 +12,10 @@ tool output — that is the whole point of it existing.
 node tools/gauntlet.mjs status --json
 ```
 
-If **$ARGUMENTS** names a slug, get that one's detail and its build scope instead:
+If **$ARGUMENTS** names a slug, get that one's detail instead:
 
 ```bash
 node tools/gauntlet.mjs next $ARGUMENTS --json
-node tools/gauntlet.mjs affected --slug $ARGUMENTS --json
 ```
 
 ## Parse the JSON, never the table
@@ -34,7 +33,7 @@ Lead with the decision, not the inventory:
 2. **Anything blocked**, and what would unblock it.
 3. **Carried-forward items** on whatever is in flight — these are the things a fresh session
    would otherwise rediscover the hard way.
-4. **Where the numbers came from.** `green` is read from the newest acceptance `.trx`; if it is
+4. **Where the numbers came from.** `green` is read from the slug's cucumber-js report, `test-results/<slug>.json`; if it is
    stale or `null`, say "no run on record", never "0 passing". `scen` is counted live from the
    `.feature` file.
 

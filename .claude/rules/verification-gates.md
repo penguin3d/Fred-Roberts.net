@@ -3,13 +3,9 @@
 Applies to all product code in `src/`.
 This rule is the **policy**: what must be true before work is called done.
 
-**Replaces the old `tdd.md`.** Test-first is no longer mandated — write tests before or after
+Test-first is optional — write tests before or after
 the code, whichever gets you there. What is mandated is the numbers below. An untested change
 is not done regardless of the order you wrote things in.
-
-**This rule supersedes the "self-check, don't over-test" line in
-[ponytail-minimalism.md](ponytail-minimalism.md).** Be minimal about production code; never
-about tests. "Trivial code needs none" does not survive the coverage floor.
 
 ## Scope every run to the files you touched — that scope IS the gate
 <scoped_gate>
@@ -125,9 +121,6 @@ survivor list IS the remaining test list.
 
 `--since:main` narrows to changed files, but on this repo it is unreliable when the branch has
 merge commits — prefer `--mutate` with an explicit glob for the files you touched.
-
-Note for this codebase specifically: Stryker's standard operators flip `<`↔`<=` and `>`↔`>=`.
-That is precisely the off-by-one date-boundary bug CLAUDE.md names as our worst failure mode.
 
 ## Non-negotiables
 <verification_non_negotiables>

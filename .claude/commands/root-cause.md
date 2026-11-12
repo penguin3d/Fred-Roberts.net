@@ -24,13 +24,12 @@ Summarize what you understand the reported behavior to be in 2-3 bullet points, 
 
 ### Step 2: Deep Code Investigation
 
-Launch 1-3 Explore agents to trace code paths that could explain the symptoms:
+Trace the code paths that could explain the symptoms:
 
 - Search `src/`, and the `features/` contracts for the behaviour that is wrong
-- Trace the full data flow: API endpoint → handler/query → DTO → frontend component → template
-- Look for known patterns from CLAUDE.md (timezone bugs, weekly limit day, etc.)
+- Trace the full data flow through `src/`, from where the data comes in to the template
 
-Read all critical files yourself to verify agent findings before presenting.
+Read every critical file yourself before presenting.
 
 ### Step 3: Present Root Cause & Fix Plan
 
@@ -54,7 +53,7 @@ Once the user approves the analysis, ask for filing details using AskUserQuestio
 
 1. **Work item type** — Bug or User Story (default: Bug)
 2. **Priority** — 1 Critical, 2 High, 3 Medium, 4 Low (default: 3)
-3. **ADO Project** — default: "Gym Bug"
+3. **ADO Project** — default: "Fred Personal Work"
 4. **Sprint/Iteration** — which iteration path to assign
 
 Accept shorthand — if the user says "defaults" or "bug, p3, current sprint", use those values.
@@ -63,7 +62,7 @@ Accept shorthand — if the user says "defaults" or "bug, p3, current sprint", u
 
 ### Step 5: File ADO Work Item
 
-Use `mcp__ado__wit_create_work_item` with:
+Use `mcp__ado__wit_work_item_write` (action `add_child` under the parent Feature, as `work-item-intake` does) with:
 
 - **Title**: concise summary
 - **Description**: full root cause write-up from Step 3, formatted in HTML for ADO:
@@ -83,7 +82,7 @@ Report the created work item ID to the user.
 
 ```
 Filed: Bug #XXXX — "Title"
-Project: Gym Bug | Sprint: <iteration> | Priority: <priority>
+Project: Fred Personal Work | Sprint: <iteration> | Priority: <priority>
 Root cause: <one-line summary>
 Fix: <one-line summary of proposed changes>
 Files affected: <list>

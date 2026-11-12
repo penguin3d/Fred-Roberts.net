@@ -60,12 +60,7 @@ Use `wit_work_item_comment_write` on the id in `gauntlet next <slug> --json`.
 - **Test-first is optional.** Write tests before or after the code — whichever is faster for
   you. The gate is the coverage number, not the order.
 - Work one scenario at a time. Get it green, move on.
-- Follow the nearest existing code for patterns. This repo has strong conventions: custom
-  mediator (`cqrs-mediatr` skill), EF Core (`entity-framework-core` skill), `DateOnly` for
-  calendar dates, `IOptions<TenancyOptions>` for the tenant id, `IOptions<BusinessCalendarOptions>`
-  for week start. Never hardcode any of those.
-- User-facing text goes through the message-key registry (`user-facing-messages` skill), not
-  inline strings.
+- Follow the nearest existing code for patterns.
 
 ## Gate — all of these, before you may hand off
 

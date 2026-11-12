@@ -38,15 +38,13 @@ conscious reversal — the audit should say what the old agents got wrong so we 
 
 ## What to read
 
-- `.claude/skills/*/SKILL.md` (23) + their `references/` payloads
-- `.claude/rules/*.md` (19) — note which carry `paths:` frontmatter (conditional) vs not (**always-on**)
-- `.claude/commands/*.md` (6)
-- `.claude/hooks/*` (7) + how they're wired in `.claude/settings.json`
+- `.claude/skills/*/SKILL.md` + their `references/` payloads
+- `.claude/rules/*.md` — note which carry `paths:` frontmatter (conditional) vs not (**always-on**)
+- `.claude/commands/*.md`
 - `CLAUDE.md`, `docs/gauntlet-install.md`
 - `~/.claude/skills/` — the user-level set, to see what's already global and shouldn't be duplicated here
 
-Baseline already measured: **7 always-on rules ≈ 2,231 words**, plus **CLAUDE.md files ≈ 2,540 words**.
-Recompute and report the real per-turn context cost.
+Measure and report the real per-turn context cost.
 
 ## Verdicts — assign exactly one per artifact
 

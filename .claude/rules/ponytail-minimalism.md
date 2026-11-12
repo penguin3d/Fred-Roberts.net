@@ -12,7 +12,7 @@ Before writing any code for a task, walk down and stop as soon as one rung satis
 1. **Does this need to exist at all?** Speculative / "we might need it later" → skip it (YAGNI).
 2. **Stdlib / framework does it?** Use the built-in (`Array`/`Map`, LINQ, Angular Signals, EF Core, .NET BCL) before hand-rolling.
 3. **Native platform feature covers it?** CSS over JS, DB constraints/computed columns over app code, native inputs over custom logic.
-4. **Already-built `gb-*` component / installed dependency solves it? Reuse it — don't re-question it.** A `gb-*` design-system component (or existing handler/service in `gym-bug-core`, `shared/`) IS the minimal path: prefer it over a one-off, every time. Reaching for what already exists is never what this rule trims — only adding NEW speculative code or NEW packages is.
+4. **Already-built component, service or installed dependency solves it? Reuse it — don't re-question it.** What already exists in `src/` IS the minimal path: prefer it over a one-off, every time. Reaching for what already exists is never what this rule trims — only adding NEW speculative code or NEW packages is.
 5. **Can it be one line?** One line.
 6. **Only then:** the minimum code that works — fewest files, shortest working diff.
 
@@ -27,8 +27,8 @@ Before writing any code for a task, walk down and stop as soon as one rung satis
   four new files.
 - **Mark deliberate simplifications** with a `ponytail:` comment naming the ceiling and the
   upgrade path, e.g. `// ponytail: single global lock; shard per-account if throughput bites`.
-- **Self-check, don't over-test.** Non-trivial logic gets one small test (Karma/xUnit per
-  [test infra](../../docs/testing/test-infrastructure.md)); trivial code needs none.
+- **Minimal code, not minimal tests.** The coverage floor in
+  [verification-gates.md](verification-gates.md) applies to everything you write.
 
 ## NEVER simplify away (be lazy about code, never about these)
 
@@ -41,14 +41,10 @@ These are calibration knobs on a physical system — always wire them fully.
 Ponytail's "no abstractions" is about *speculative* ones. An abstraction is NOT speculative —
 and SOLID wins — when it has a real, present reason here:
 
-- **Test seam:** the codebase mocks `IMediator`, `ResolvePlanQuery`, repositories. An interface
-  that exists so a handler is unit-testable is necessary, not speculative — keep it.
-  is the established Clean Architecture seam — not a single-implementation accident.
-- **Clean Architecture layer boundary:** CQRS commands/queries/handlers and domain-event
-  handlers are the house pattern. Follow it; don't "flatten" it in the name of fewer files.
+- **Test seam:** an adapter or interface that exists so code is unit-testable (IO and
+  environment behind a seam) is necessary, not speculative — keep it.
 - **DIP holds:** inject dependencies, never `new` a service inside a class.
-- **DRY single-sources stay:** reuse `parseLocalDate`/`toLocalDateString`, message keys,
-  `TenancyOptions`, `gb-*` components — rung 4 *is* DRY.
+- **DRY single-sources stay:** reuse the helpers and components that already exist — rung 4 *is* DRY.
 
 Rule of thumb: **ladder first to decide WHETHER to build; SOLID to decide HOW once you must.**
 If the abstraction earns its keep via a test/DI/layer boundary that exists today, write it.

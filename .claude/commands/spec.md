@@ -36,7 +36,7 @@ yet — this stage creates it — so the id comes from the card, not from `gaunt
 ## Hard bans
 
 - **Never open `src/` source.** You cannot design
-  what you cannot read, and that is the point. You may read `Features/*.feature` — that is
+  what you cannot read, and that is the point. You may read `features/*.feature` — that is
   your vocabulary, not the implementation.
 - Never write TypeScript, SQL, or step-definition code.
 - **Never describe a user interface.** No pages, no buttons, no navigation. You have not seen the
