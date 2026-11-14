@@ -1,3 +1,8 @@
+---
+paths:
+  - "src/**/*.{ts,html,scss}"
+---
+
 # Verification gates — coverage, CRAP, mutation. TDD is optional.
 
 Applies to all product code in `src/`.

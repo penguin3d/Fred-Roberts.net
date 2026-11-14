@@ -1,3 +1,10 @@
+---
+paths:
+  - "src/**/*.{ts,html,scss}"
+  - "package.json"
+  - "docs/reference-links.md"
+---
+
 # External library docs — read the version we run, flag upgrades that fix real problems
 
 [docs/reference-links.md](../../docs/reference-links.md) is the registry of external docs,
