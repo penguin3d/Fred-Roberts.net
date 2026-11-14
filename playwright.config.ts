@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Stage 5's runner. One spec per Scenario in the frozen contract, driven through the UI.
+ * Playwright config for the specs in e2e/, driven through the UI.
  *
  * `webServer` starts `ng serve` and waits for it, so a cold `npm run e2e` works without
  * anyone remembering to start the app first. reuseExistingServer means it attaches to a

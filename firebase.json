@@ -9,7 +9,6 @@
       "coverage",
       "test-results",
       "reports",
-      ".stryker-tmp",
       "firebase-debug.log",
       "firebase-debug.*.log"
     ]

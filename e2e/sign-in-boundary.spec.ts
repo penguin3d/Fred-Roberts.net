@@ -1,8 +1,7 @@
 /**
- * Stage 5 for @sign-in-boundary — the scenarios a signed-out visitor can prove.
+ * Sign-in boundary — the scenarios a signed-out visitor can prove.
  *
- * One test per Scenario in features/sign-in-boundary.feature, named after it so the two map
- * 1:1. The owner's half lives in sign-in-boundary.owner.spec.ts, which needs a real Google
+ * The owner's half lives in sign-in-boundary.owner.spec.ts, which needs a real Google
  * session and so needs the one-time headed setup in auth.setup.ts.
  *
  * These drive the deployed site, not `ng serve`: the boundary is express middleware in

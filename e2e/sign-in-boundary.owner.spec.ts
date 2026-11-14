@@ -1,5 +1,5 @@
 /**
- * Stage 5 for @sign-in-boundary — the scenarios that need a real owner session.
+ * Sign-in boundary — the scenarios that need a real owner session.
  *
  * Every test starts from the session captured by auth.setup.ts, in its own browser context,
  * so a test that signs out cannot affect any other. Run the setup first:

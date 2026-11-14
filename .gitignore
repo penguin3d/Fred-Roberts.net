@@ -42,11 +42,9 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# gauntlet pipeline
+# Playwright output
 /test-results/
 /reports/
-/StrykerOutput/
-/.stryker-tmp/
 
 # A captured owner session is a live credential for the portfolio.
 .auth/
