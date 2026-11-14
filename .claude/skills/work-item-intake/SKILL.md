@@ -99,9 +99,8 @@ If it exists, add the new evidence as a comment and say so; do not open a second
 
 ## Step 3 — Write it in business language
 
-Written in plain, direct language the requester would recognise as their own — the same voice
-rules as [ghostwriter-voice.md](../../rules/ghostwriter-voice.md). No AI tells, no heading pyramids, no
-restating the request back before answering it.
+Written in plain, direct language the requester would recognise as their own. No AI tells, no
+heading pyramids, no restating the request back before answering it.
 
 ### Titles
 

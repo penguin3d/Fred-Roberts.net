@@ -20,7 +20,7 @@
 | ADO project | **Fred Personal Work** (the requested "Fred Roberts Personal" does not exist) |
 | ADO teams | `Fred Personal Work Team` (product board), `Development` (pipeline board) — both already carried the GymBugHub layouts |
 | Area path | `Fred Personal Work\Development` |
-| Voice | `ghostwriter-voice` retargeted from Bojan to Fred |
+| Voice | `ghostwriter-voice` removed: it was Bojan's rule, not Fred's |
 
 ## Layers installed
 
